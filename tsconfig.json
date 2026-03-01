@@ -14,6 +14,18 @@
     },
     {
       "path": "./packages/utils"
+    },
+    {
+      "path": "./packages/core"
+    },
+    {
+      "path": "./packages/media-adapters/videojs"
+    },
+    {
+      "path": "./packages/media-adapters/hlsjs"
+    },
+    {
+      "path": "./packages/media-adapters/youtube"
     }
   ]
 }
