@@ -1,6 +1,6 @@
 import type { TrackingEvent, EventType, EventProperties } from '../types';
-//import { getDeviceType } from '../config/device';
-//import { SDK_VERSION } from '../version';
+import { getDeviceType } from '../config/device';
+import { SDK_VERSION } from '../version';
 
 
 let _siteToken = '';
@@ -59,7 +59,7 @@ export function buildEvent(
     language:        readLanguage(),
 
     // SDK metadata
-    //sdkVersion:      SDK_VERSION,
+    sdkVersion:      SDK_VERSION,
 
     // Optional payload
     properties,

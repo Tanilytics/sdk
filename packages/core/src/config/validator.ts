@@ -31,12 +31,18 @@ export function validate(config: AnalyticsConfig): void {
         'Example: endpoint: "https://ingest.your-instance.com/api/v1/events"',
       );
     }
+    // change this
+    const isLocalhost =
+  parsed.hostname === 'localhost' ||
+  parsed.hostname === '127.0.0.1' ||
+  parsed.hostname.endsWith('.local');
 
-    if (parsed.protocol !== 'https:') {
-      throw new Error(
-        `[AnalyticsSDK] endpoint must use HTTPS. Received: "${config.endpoint}"`,
-      );
-    }
+if (parsed.protocol !== 'https:' && !isLocalhost) {
+  throw new Error(
+    `[AnalyticsSDK] endpoint must use HTTPS. Received: "${config.endpoint}"\n` +
+    'HTTP is only allowed for localhost during development.',
+  );
+}
   }
 
   // ── flushInterval ─────────────────────────────────────────────────────────
