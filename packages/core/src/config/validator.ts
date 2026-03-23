@@ -31,11 +31,11 @@ export function validate(config: AnalyticsConfig): void {
         'Example: endpoint: "https://ingest.your-instance.com/api/v1/events"',
       );
     }
-    // change this
+    
     const isLocalhost =
-  parsed.hostname === 'localhost' ||
-  parsed.hostname === '127.0.0.1' ||
-  parsed.hostname.endsWith('.local');
+      parsed.hostname === 'localhost' ||
+      parsed.hostname === '127.0.0.1' ||
+      parsed.hostname.endsWith('.local');
 
 if (parsed.protocol !== 'https:' && !isLocalhost) {
   throw new Error(
