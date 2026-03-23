@@ -75,4 +75,62 @@ if (parsed.protocol !== 'https:' && !isLocalhost) {
       );
     }
   }
+
+  // ── maxQueueSize ──────────────────────────────────────────────────────────
+if (config.maxQueueSize !== undefined) {
+  if (
+    typeof config.maxQueueSize !== 'number' ||
+    !Number.isInteger(config.maxQueueSize) ||
+    config.maxQueueSize < 1 ||
+    config.maxQueueSize > 10000
+  ) {
+    throw new Error(
+      `[AnalyticsSDK] maxQueueSize must be an integer between 1 and 10000.\n` +
+      `Received: ${config.maxQueueSize}`,
+    );
+  }
 }
+// ── debug ──────────────────────────────────────────────────────────
+  if (config.debug !== undefined && typeof config.debug !== 'boolean') {
+    throw new Error(
+      `[AnalyticsSDK] debug must be a boolean.\n` +
+      `Received: ${config.debug}`,
+    );
+  }
+  
+  // ── requireConsent ──────────────────────────────────────────────────────────
+  if (config.requireConsent !== undefined && typeof config.requireConsent !== 'boolean') {
+    throw new Error(
+      `[AnalyticsSDK] requireConsent must be a boolean.\n` +
+      `Received: ${config.requireConsent}`,
+    );
+  }
+  // ── respectDoNotTrack ──────────────────────────────────────────────────────────
+  if (config.respectDoNotTrack !== undefined && typeof config.respectDoNotTrack !== 'boolean') {
+    throw new Error(
+      `[AnalyticsSDK] respectDoNotTrack must be a boolean.\n` +
+      `Received: ${config.respectDoNotTrack}`,
+    );
+  }
+  
+  // ── autocapture ──────────────────────────────────────────────────────────
+  if (config.autocapture !== undefined) {
+    if (typeof config.autocapture !== 'object' || config.autocapture === null) {
+      throw new Error(
+        `[AnalyticsSDK] autocapture must be an object.\n` +
+        `Received: ${config.autocapture}`,
+      );
+    }
+  for (const [key, value] of Object.entries(config.autocapture ?? {})) {
+    if (typeof value !== 'boolean') {
+      throw new Error(
+        `[AnalyticsSDK] autocapture.${key} must be a boolean.\n` +
+        `Received: ${value}`,
+      );
+    }
+  }
+    
+}
+}
+
+  
