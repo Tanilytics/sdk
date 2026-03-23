@@ -1,4 +1,3 @@
-import { read } from 'fs';
 import { readOptOut, readConsent } from './storage';
 
 
