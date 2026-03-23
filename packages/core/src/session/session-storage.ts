@@ -42,7 +42,6 @@ function isValidSessionData(data: unknown): data is SessionData {
     typeof d.sessionId === 'string' &&
     d.sessionId.length > 0 &&
     typeof d.startedAt === 'number' &&
-    typeof d.lastActivityAt === 'number' &&
-    typeof d.pageViewCount === 'number'
+    typeof d.lastActivityAt === 'number'
   );
 }
