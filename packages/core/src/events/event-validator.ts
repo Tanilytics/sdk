@@ -1,11 +1,5 @@
 import type { EventProperties } from '../types';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Reserved field names — property keys that would shadow TrackingEvent fields
-// A consumer passing { sessionId: 'fake' } should not be able to override
-// the real sessionId that the SDK stamps onto every event
-// ─────────────────────────────────────────────────────────────────────────────
-
 const RESERVED_KEYS = new Set([
   'eventId',
   'siteToken',
@@ -24,7 +18,6 @@ const RESERVED_KEYS = new Set([
 const MAX_PROPERTIES = 20;
 const MAX_STRING_LENGTH = 500;
 
-// ─────────────────────────────────────────────────────────────────────────────
 
 export interface ValidationResult {
   valid: boolean;
@@ -32,18 +25,11 @@ export interface ValidationResult {
   warnings: string[];
 }
 
-/**
- * Validates and sanitises event properties before they are attached to an event.
- *
- * Strategy: never drop the entire event due to bad properties.
- * Instead, strip invalid properties, attach the rest, and warn in debug mode.
- * A partial event with some properties stripped is better than no event at all.
- */
 export function validateProperties(
   properties: EventProperties | undefined,
   debug: boolean,
 ): ValidationResult {
-  // No properties — nothing to validate
+
   if (properties === undefined) {
     return { valid: true, sanitised: {}, warnings: [] };
   }

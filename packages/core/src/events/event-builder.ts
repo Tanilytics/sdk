@@ -13,9 +13,13 @@ export function configureSiteToken(token: string): void {
   _siteToken = token;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// The main function
-// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Internal testing helper to clear module state between tests.
+ * Not part of the public SDK API.
+ */
+export function __resetEventBuilderStateForTests(): void {
+  _siteToken = '';
+}
 
 /**
  * Builds a complete TrackingEvent from minimal inputs.
@@ -36,6 +40,13 @@ export function buildEvent(
   sessionId: string,
   properties?: EventProperties,
 ): TrackingEvent {
+  if (_siteToken.trim().length === 0) {
+    throw new Error(
+      '[AnalyticsSDK] Site token is not configured. ' +
+      'Ensure init() has been called before tracking events.',
+    );
+  }
+
   return {
     // Identity
     eventId:         generateEventId(),
@@ -67,10 +78,29 @@ export function buildEvent(
 }
 
 function generateEventId(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
+  if (
+    typeof globalThis.crypto !== 'undefined' &&
+    typeof globalThis.crypto.randomUUID === 'function'
+  ) {
+    return globalThis.crypto.randomUUID();
   }
-  // Fallback for environments without crypto.randomUUID
+
+  // Fallback for environments without crypto.randomUUID.
+  // Use getRandomValues when available before Math.random.
+  if (
+    typeof globalThis.crypto !== 'undefined' &&
+    typeof globalThis.crypto.getRandomValues === 'function'
+  ) {
+    const bytes = new Uint8Array(16);
+    globalThis.crypto.getRandomValues(bytes);
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+  }
+
+  // Last-resort fallback
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
     const v = c === 'x' ? r : (r & 0x3) | 0x8;
