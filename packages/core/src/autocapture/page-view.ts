@@ -50,7 +50,9 @@ function patchHistory(): void {
     unused: string,
     url?: string | URL | null
   ): void {
-    _originalPushState!(state, unused, url);
+    const originalPushState = _originalPushState;
+    if (originalPushState === null) return;
+    originalPushState(state, unused, url);
     handleNavigation('push');
   };
 
@@ -59,7 +61,9 @@ function patchHistory(): void {
     unused: string,
     url?: string | URL | null
   ): void {
-    _originalReplaceState!(state, unused, url);
+    const originalReplaceState = _originalReplaceState;
+    if (originalReplaceState === null) return;
+    originalReplaceState(state, unused, url);
     handleNavigation('replace');
   };
 }

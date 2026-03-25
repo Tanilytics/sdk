@@ -21,10 +21,12 @@ export function hasConsent(): boolean {
 
 export function isDoNotTrackEnabled(): boolean {
   try {
+    const legacyNavigator = navigator as Navigator & { msDoNotTrack?: string };
+
     return (
       navigator.doNotTrack === '1' ||
       // Legacy IE/Edge
-      (navigator as any).msDoNotTrack === '1'
+      legacyNavigator.msDoNotTrack === '1'
     );
   } catch {
     return false;

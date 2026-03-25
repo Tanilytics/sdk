@@ -24,5 +24,8 @@
       "type:library"
     ]
   },
+  "devDependencies": {
+    "vitest": "4.0.9"
+  },
   "dependencies": {}
 }
