@@ -48,9 +48,6 @@ async function attemptSend(
   config: SenderConfig,
 ): Promise<SendResult> {
   let response: Response;
-
-  
-  //console.log('[AnalyticsSDK] Sending events to ingest API:', events);
   
 
   try {
@@ -116,7 +113,6 @@ function classifyResponse(response: Response): SendResult {
     };
   }
 
-  // Unexpected status code
   return {
     ok: false,
     retryable: false,

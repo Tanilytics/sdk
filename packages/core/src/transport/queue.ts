@@ -11,16 +11,7 @@ export interface QueueConfig {
   senderConfig: SenderConfig;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * EventQueue holds events in memory and flushes them in batches.
- *
- * Flush triggers (in order of priority):
- * 1. Page unload  → sendBeacon (fire and forget)
- * 2. Batch full   → immediate flush via sender
- * 3. Timer        → scheduled flush every flushInterval ms
- */
 export class EventQueue {
   private events: TrackingEvent[] = [];
   private timer: ReturnType<typeof setInterval> | null = null;
@@ -40,74 +31,60 @@ export class EventQueue {
     this.attachUnloadListeners();
   }
 
-  // ── Public API ─────────────────────────────────────────────────────────────
 
-  /**
-   * Add an event to the queue.
-   * Triggers an immediate flush if the batch size is reached.
-   */
   public enqueue(event: TrackingEvent): void {
-    // Enforce max queue size — drop oldest event to make room
     if (this.events.length >= this.config.maxQueueSize) {
-      this.events.shift(); // remove oldest
+      this.events.shift(); 
     }
 
     this.events.push(event);
 
-    // Flush immediately if we have a full batch
     if (this.events.length >= this.config.maxBatchSize) {
       void this.flush();
     }
   }
 
-  /**
-   * Flush all queued events immediately.
-   * Safe to call at any time — concurrent calls are protected by isFlushing.
-   */
+  
   public async flush(): Promise<void> {
     // Prevent concurrent flushes
     if (this.isFlushing || this.events.length === 0) return;
 
     this.isFlushing = true;
 
-    // Take a snapshot and clear the queue BEFORE the async send
-    // New events arriving during the send go into a fresh queue
-    // If send fails, we re-queue the snapshot — no events are lost
-    const batch = this.events.splice(0, this.config.maxBatchSize);
+    let inFlightBatch: TrackingEvent[] | null = null;
 
     try {
-      const result = await sendBatch(batch, this.config.senderConfig);
+      while (this.events.length > 0) {
+        inFlightBatch = this.events.splice(0, this.config.maxBatchSize);
+        const result = await sendBatch(inFlightBatch, this.config.senderConfig);
 
-      if (!result.ok) {
-        // Send failed after all retries — put events back at the front
-        this.events.unshift(...batch);
+        if (!result.ok) {
+          this.events.unshift(...inFlightBatch);
+          break;
+        }
+
+        inFlightBatch = null;
       }
     } catch {
-      // Unexpected error — re-queue to try again next cycle
-      this.events.unshift(...batch);
+      if (inFlightBatch !== null) {
+        this.events.unshift(...inFlightBatch);
+      }
     } finally {
       this.isFlushing = false;
     }
   }
 
-  /**
-   * Flush remaining events and shut down all timers and listeners.
-   * Call this when the SDK is destroyed.
-   */
+
   public destroy(): void {
     this.stopTimer();
     this.detachUnloadListeners();
-    // Final flush attempt — may not complete if called during shutdown
     void this.flush();
-    this.events = [];
   }
 
-  /** How many events are currently queued */
   public get size(): number {
     return this.events.length;
   }
 
-  // ── Timer management ───────────────────────────────────────────────────────
 
   private startTimer(): void {
     this.timer = setInterval(() => {
@@ -125,6 +102,8 @@ export class EventQueue {
   // ── Page unload handling ───────────────────────────────────────────────────
 
   private handleVisibilityChange(): void {
+    if (typeof document === 'undefined') return;
+
     // Fire when tab becomes hidden — user switched tabs or minimised
     if (document.visibilityState === 'hidden') {
       this.flushViaBeacon();
@@ -157,11 +136,19 @@ export class EventQueue {
   }
 
   private attachUnloadListeners(): void {
+    if (typeof document === 'undefined' || typeof window === 'undefined') {
+      return;
+    }
+
     document.addEventListener('visibilitychange', this.onVisibilityChange);
     window.addEventListener('pagehide', this.onPageHide);
   }
 
   private detachUnloadListeners(): void {
+    if (typeof document === 'undefined' || typeof window === 'undefined') {
+      return;
+    }
+
     document.removeEventListener('visibilitychange', this.onVisibilityChange);
     window.removeEventListener('pagehide', this.onPageHide);
   }

@@ -23,18 +23,19 @@ const DEFAULT_OPTIONS: RetryOptions = {
  * fn() must return { retryable: boolean } so the retry loop knows
  * whether to try again or give up immediately.
  */
-export async function withRetry<T extends { retryable: boolean }>(
+export async function withRetry<T extends { ok: boolean; retryable: boolean }>(
   fn: () => Promise<T>,
   opts: Partial<RetryOptions> = {},
 ): Promise<RetryResult<T>> {
   const options = { ...DEFAULT_OPTIONS, ...opts };
   let lastResult: T | undefined;
+  let lastThrownError: string | undefined;
 
   for (let attempt = 1; attempt <= options.maxAttempts; attempt++) {
     try {
       const result = await fn();
 
-      if ((result as any).ok === true) {
+      if (result.ok) {
         return { success: true, value: result, attempts: attempt };
       }
 
@@ -51,6 +52,8 @@ export async function withRetry<T extends { retryable: boolean }>(
       }
     } catch (err) {
       // Unexpected throw — treat as retryable
+      lastThrownError = err instanceof Error ? err.message : 'unknown';
+
       if (attempt < options.maxAttempts) {
         await sleep(getBackoffDelay(attempt, options.baseDelayMs));
       }
@@ -61,7 +64,7 @@ export async function withRetry<T extends { retryable: boolean }>(
     success: false,
     value: lastResult,
     attempts: options.maxAttempts,
-    finalError: 'Max attempts reached',
+    finalError: lastThrownError ?? 'Max attempts reached',
   };
 }
 
