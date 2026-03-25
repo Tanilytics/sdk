@@ -35,8 +35,17 @@ describe('EventQueue', () => {
   });
 
   it('flush drains all queued events in sequential batches', async () => {
+    let resolveFirstSend: ((value: { ok: boolean; retryable: boolean }) => void) | undefined;
+
     const mockSendBatch = vi.mocked(sendBatch);
-    mockSendBatch.mockResolvedValue({ ok: true, retryable: false });
+    mockSendBatch
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirstSend = resolve;
+          }),
+      )
+      .mockResolvedValue({ ok: true, retryable: false });
 
     const queue = new EventQueue({
       maxBatchSize: 2,
@@ -55,7 +64,9 @@ describe('EventQueue', () => {
     queue.enqueue(makeEvent('4'));
     queue.enqueue(makeEvent('5'));
 
-    await queue.flush();
+    resolveFirstSend?.({ ok: true, retryable: false });
+    await Promise.resolve();
+    await Promise.resolve();
 
     expect(mockSendBatch).toHaveBeenCalledTimes(3);
     expect(queue.size).toBe(0);
