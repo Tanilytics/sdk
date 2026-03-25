@@ -47,7 +47,7 @@ describe('sendBeacon', () => {
     expect(result.sent).toBe(true);
     expect(sendBeaconMock).toHaveBeenCalledTimes(1);
 
-    const [urlArg] = sendBeaconMock.mock.calls[0] as [string, Blob];
+    const [urlArg] = sendBeaconMock.mock.calls[0] as unknown as [string, Blob];
     const parsed = new URL(urlArg);
 
     expect(parsed.searchParams.get('foo')).toBe('1');
