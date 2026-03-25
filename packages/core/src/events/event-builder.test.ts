@@ -42,7 +42,9 @@ describe('events/event-builder', () => {
   });
 
   it('throws if site token is not configured', () => {
-    expect(() => buildEvent('custom', 'session-1')).toThrow(/Site token is not configured/);
+    expect(() => buildEvent('custom', 'session-1')).toThrow(
+      /Site token is not configured/
+    );
   });
 
   it('builds a complete event after configureSiteToken', () => {
@@ -53,7 +55,10 @@ describe('events/event-builder', () => {
 
     configureSiteToken('site_token_123');
 
-    const event = buildEvent('custom', 'session-abc', { plan: 'pro', trial: false });
+    const event = buildEvent('custom', 'session-abc', {
+      plan: 'pro',
+      trial: false,
+    });
 
     expect(event).toEqual({
       eventId: 'event-uuid-1',
@@ -86,7 +91,9 @@ describe('events/event-builder', () => {
     const event = buildEvent('page_view', 'session-abc');
 
     expect(getRandomValues).toHaveBeenCalledTimes(1);
-    expect(event.eventId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    expect(event.eventId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+    );
   });
 
   it('uses Math.random fallback when crypto is unavailable', () => {
@@ -96,7 +103,9 @@ describe('events/event-builder', () => {
     configureSiteToken('site_token_123');
     const event = buildEvent('page_view', 'session-abc');
 
-    expect(event.eventId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    expect(event.eventId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+    );
   });
 
   it('falls back to safe defaults when browser globals are unavailable', () => {

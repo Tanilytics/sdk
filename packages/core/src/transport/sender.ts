@@ -1,8 +1,6 @@
 import type { TrackingEvent } from '../types';
 import { withRetry } from './retry';
 
-
-
 export interface SenderConfig {
   endpoint: string;
   siteToken: string;
@@ -16,19 +14,20 @@ export interface SendResult {
   reason?: string;
 }
 
-
 export async function sendBatch(
   events: TrackingEvent[],
-  config: SenderConfig,
+  config: SenderConfig
 ): Promise<SendResult> {
-  const result = await withRetry(
-    () => attemptSend(events, config),
-    { maxAttempts: 3, baseDelayMs: 1000 },
-  );
+  const result = await withRetry(() => attemptSend(events, config), {
+    maxAttempts: 3,
+    baseDelayMs: 1000,
+  });
 
   if (result.success) {
     if (config.debug) {
-      console.info(`[AnalyticsSDK] Sent ${events.length} event(s) successfully.`);
+      console.info(
+        `[AnalyticsSDK] Sent ${events.length} event(s) successfully.`
+      );
     }
     return { ok: true, retryable: false };
   }
@@ -36,7 +35,7 @@ export async function sendBatch(
   if (config.debug) {
     console.warn(
       `[AnalyticsSDK] Failed to send ${events.length} event(s) after ` +
-      `${result.attempts} attempt(s). ${result.finalError ?? ''}`,
+        `${result.attempts} attempt(s). ${result.finalError ?? ''}`
     );
   }
 
@@ -45,10 +44,9 @@ export async function sendBatch(
 
 async function attemptSend(
   events: TrackingEvent[],
-  config: SenderConfig,
+  config: SenderConfig
 ): Promise<SendResult> {
   let response: Response;
-  
 
   try {
     response = await fetch(config.endpoint, {
@@ -66,7 +64,9 @@ async function attemptSend(
     return {
       ok: false,
       retryable: true,
-      reason: `Network error: ${err instanceof Error ? err.message : 'unknown'}`,
+      reason: `Network error: ${
+        err instanceof Error ? err.message : 'unknown'
+      }`,
     };
   }
 

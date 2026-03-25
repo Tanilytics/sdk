@@ -37,7 +37,9 @@ describe('session/session-id', () => {
 
     vi.stubGlobal('crypto', undefined);
     vi.spyOn(Date, 'now').mockReturnValue(fixedNow);
-    vi.spyOn(Math, 'random').mockReturnValueOnce(0.111111111).mockReturnValueOnce(0.222222222);
+    vi.spyOn(Math, 'random')
+      .mockReturnValueOnce(0.111111111)
+      .mockReturnValueOnce(0.222222222);
 
     const first = generateSessionId();
     const second = generateSessionId();

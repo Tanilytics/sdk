@@ -9,7 +9,9 @@ export type { AnalyticsConfig, ResolvedConfig };
  * Validates first — throws on invalid input.
  * Merges second — returns complete resolved config.
  */
-export function validateAndMergeConfig(config: AnalyticsConfig): ResolvedConfig {
+export function validateAndMergeConfig(
+  config: AnalyticsConfig
+): ResolvedConfig {
   validate(config);
   return merge(config);
 }

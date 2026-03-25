@@ -22,13 +22,15 @@ describe('events/event-validator', () => {
         badArray: [] as unknown as string,
         badFunction: (() => 'nope') as unknown as string,
       },
-      false,
+      false
     );
 
     expect(result.valid).toBe(false);
     expect(result.sanitised).toEqual({ goodString: 'ok' });
     expect(result.warnings.some((w) => w.includes('reserved'))).toBe(true);
-    expect(result.warnings.some((w) => w.includes('invalid value type'))).toBe(true);
+    expect(result.warnings.some((w) => w.includes('invalid value type'))).toBe(
+      true
+    );
   });
 
   it('truncates long strings to max length', () => {
@@ -37,7 +39,9 @@ describe('events/event-validator', () => {
 
     expect(result.valid).toBe(false);
     expect(result.sanitised.bio).toBe('a'.repeat(500));
-    expect(result.warnings.some((w) => w.includes('truncated to 500'))).toBe(true);
+    expect(result.warnings.some((w) => w.includes('truncated to 500'))).toBe(
+      true
+    );
   });
 
   it('keeps only first 20 properties', () => {
@@ -54,7 +58,9 @@ describe('events/event-validator', () => {
   });
 
   it('logs warnings only in debug mode', () => {
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const warnSpy = vi
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
 
     validateProperties({ eventId: 'reserved-key' }, false);
     expect(warnSpy).not.toHaveBeenCalled();
@@ -71,7 +77,7 @@ describe('events/event-validator', () => {
         active: true,
         notes: null,
       },
-      false,
+      false
     );
 
     expect(result).toEqual({

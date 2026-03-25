@@ -5,11 +5,10 @@ export interface BeaconResult {
   reason?: string;
 }
 
-
 export function sendBeacon(
   events: TrackingEvent[],
   endpoint: string,
-  siteToken: string,
+  siteToken: string
 ): BeaconResult {
   // Beacon is not available in all environments
   if (
@@ -28,7 +27,10 @@ export function sendBeacon(
 
     const blob = new Blob([payload], { type: 'application/json' });
 
-    const accepted = navigator.sendBeacon(buildBeaconUrl(endpoint, siteToken), blob);
+    const accepted = navigator.sendBeacon(
+      buildBeaconUrl(endpoint, siteToken),
+      blob
+    );
 
     if (!accepted) {
       return {

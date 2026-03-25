@@ -2,7 +2,6 @@ import type { TrackingEvent, EventType, EventProperties } from '../types';
 import { getDeviceType } from '../config/device';
 import { SDK_VERSION } from '../version';
 
-
 let _siteToken = '';
 
 /**
@@ -38,39 +37,39 @@ export function __resetEventBuilderStateForTests(): void {
 export function buildEvent(
   eventType: EventType,
   sessionId: string,
-  properties?: EventProperties,
+  properties?: EventProperties
 ): TrackingEvent {
   if (_siteToken.trim().length === 0) {
     throw new Error(
       '[AnalyticsSDK] Site token is not configured. ' +
-      'Ensure init() has been called before tracking events.',
+        'Ensure init() has been called before tracking events.'
     );
   }
 
   return {
     // Identity
-    eventId:         generateEventId(),
-    siteToken:       _siteToken,
+    eventId: generateEventId(),
+    siteToken: _siteToken,
     eventType,
 
     // Timing
     clientTimestamp: Date.now(),
 
     // Page context
-    url:             readUrl(),
-    referrer:        readReferrer(),
+    url: readUrl(),
+    referrer: readReferrer(),
 
     // Session
     sessionId,
 
     // Device
-    deviceType:      getDeviceType(),
-    screenWidth:     readScreenWidth(),
-    viewportWidth:   readViewportWidth(),
-    language:        readLanguage(),
+    deviceType: getDeviceType(),
+    screenWidth: readScreenWidth(),
+    viewportWidth: readViewportWidth(),
+    language: readLanguage(),
 
     // SDK metadata
-    sdkVersion:      SDK_VERSION,
+    sdkVersion: SDK_VERSION,
 
     // Optional payload
     properties,
@@ -96,8 +95,13 @@ function generateEventId(): string {
     bytes[6] = (bytes[6] & 0x0f) | 0x40;
     bytes[8] = (bytes[8] & 0x3f) | 0x80;
 
-    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
-    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join(
+      ''
+    );
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(
+      12,
+      16
+    )}-${hex.slice(16, 20)}-${hex.slice(20)}`;
   }
 
   // Last-resort fallback

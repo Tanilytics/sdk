@@ -1,10 +1,9 @@
 import { EventTypes } from '../events/event-types';
 import type { ResolvedConfig } from '../config/types';
 
-
 type TrackFn = (
   eventType: string,
-  properties?: Record<string, string | number | boolean | null>,
+  properties?: Record<string, string | number | boolean | null>
 ) => void;
 
 interface PageViewTrackerOptions {
@@ -12,10 +11,8 @@ interface PageViewTrackerOptions {
   config: ResolvedConfig;
 }
 
-
 let _originalPushState: typeof history.pushState | null = null;
 let _originalReplaceState: typeof history.replaceState | null = null;
-
 
 let _lastUrl = '';
 
@@ -24,7 +21,6 @@ let _debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let _onPopState: (() => void) | null = null;
 
 let _track: TrackFn | null = null;
-
 
 export function attachPageViewTracker(opts: PageViewTrackerOptions): void {
   _track = opts.track;
@@ -43,9 +39,7 @@ export function detachPageViewTracker(): void {
   _lastUrl = '';
 }
 
-
 function patchHistory(): void {
- 
   if (_originalPushState !== null) return;
 
   _originalPushState = history.pushState.bind(history);
@@ -54,7 +48,7 @@ function patchHistory(): void {
   history.pushState = function (
     state: unknown,
     unused: string,
-    url?: string | URL | null,
+    url?: string | URL | null
   ): void {
     _originalPushState!(state, unused, url);
     handleNavigation('push');
@@ -63,7 +57,7 @@ function patchHistory(): void {
   history.replaceState = function (
     state: unknown,
     unused: string,
-    url?: string | URL | null,
+    url?: string | URL | null
   ): void {
     _originalReplaceState!(state, unused, url);
     handleNavigation('replace');

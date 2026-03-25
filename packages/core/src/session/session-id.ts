@@ -1,7 +1,10 @@
 // Format: <base36 timestamp>-<random string>
 
 export function generateSessionId(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+  if (
+    typeof crypto !== 'undefined' &&
+    typeof crypto.randomUUID === 'function'
+  ) {
     return crypto.randomUUID();
   }
   const timestamp = Date.now().toString(36);

@@ -59,11 +59,13 @@ describe('session/SessionManager', () => {
         sessionId: 'existing-session',
         startedAt: 1_000,
         lastActivityAt: 5_000,
-      }),
+      })
     );
 
     vi.spyOn(Date, 'now').mockReturnValue(5_001);
-    vi.stubGlobal('crypto', { randomUUID: vi.fn().mockReturnValue('new-session') });
+    vi.stubGlobal('crypto', {
+      randomUUID: vi.fn().mockReturnValue('new-session'),
+    });
 
     const manager = new SessionManager();
 
@@ -79,11 +81,13 @@ describe('session/SessionManager', () => {
         sessionId: 'expired-session',
         startedAt: 1_000,
         lastActivityAt: 1_000,
-      }),
+      })
     );
 
     vi.spyOn(Date, 'now').mockReturnValue(1_000 + SESSION_TIMEOUT_MS + 1);
-    vi.stubGlobal('crypto', { randomUUID: vi.fn().mockReturnValue('new-session') });
+    vi.stubGlobal('crypto', {
+      randomUUID: vi.fn().mockReturnValue('new-session'),
+    });
 
     const manager = new SessionManager();
 
@@ -97,7 +101,9 @@ describe('session/SessionManager', () => {
     const nowSpy = vi.spyOn(Date, 'now');
     nowSpy.mockReturnValue(10_000);
 
-    vi.stubGlobal('crypto', { randomUUID: vi.fn().mockReturnValue('stable-session') });
+    vi.stubGlobal('crypto', {
+      randomUUID: vi.fn().mockReturnValue('stable-session'),
+    });
     const manager = new SessionManager();
 
     nowSpy.mockReturnValue(10_500);
@@ -118,7 +124,10 @@ describe('session/SessionManager', () => {
     nowSpy.mockReturnValue(1_000);
 
     vi.stubGlobal('crypto', {
-      randomUUID: vi.fn().mockReturnValueOnce('session-a').mockReturnValueOnce('session-b'),
+      randomUUID: vi
+        .fn()
+        .mockReturnValueOnce('session-a')
+        .mockReturnValueOnce('session-b'),
     });
 
     const manager = new SessionManager();
@@ -135,7 +144,10 @@ describe('session/SessionManager', () => {
     nowSpy.mockReturnValue(1_000);
 
     vi.stubGlobal('crypto', {
-      randomUUID: vi.fn().mockReturnValueOnce('session-a').mockReturnValueOnce('session-b'),
+      randomUUID: vi
+        .fn()
+        .mockReturnValueOnce('session-a')
+        .mockReturnValueOnce('session-b'),
     });
 
     const manager = new SessionManager();
@@ -150,7 +162,9 @@ describe('session/SessionManager', () => {
   it('returns a snapshot copy that does not mutate internal state', () => {
     stubSessionStorage();
     vi.spyOn(Date, 'now').mockReturnValue(2_000);
-    vi.stubGlobal('crypto', { randomUUID: vi.fn().mockReturnValue('session-copy') });
+    vi.stubGlobal('crypto', {
+      randomUUID: vi.fn().mockReturnValue('session-copy'),
+    });
 
     const manager = new SessionManager();
     const snapshot = manager.getSnapshot() as { sessionId: string };
@@ -165,7 +179,9 @@ describe('session/SessionManager', () => {
     const nowSpy = vi.spyOn(Date, 'now');
     nowSpy.mockReturnValue(20_000);
 
-    vi.stubGlobal('crypto', { randomUUID: vi.fn().mockReturnValue('no-storage-session') });
+    vi.stubGlobal('crypto', {
+      randomUUID: vi.fn().mockReturnValue('no-storage-session'),
+    });
 
     const manager = new SessionManager();
 

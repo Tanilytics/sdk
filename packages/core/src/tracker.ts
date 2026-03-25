@@ -8,7 +8,10 @@ import { buildEvent, configureSiteToken } from './events';
 import { validateProperties } from './events/event-validator';
 import { EventQueue } from './transport';
 import type { QueueConfig } from './transport/queue';
-import { attachPageViewTracker, detachPageViewTracker } from './autocapture/page-view';
+import {
+  attachPageViewTracker,
+  detachPageViewTracker,
+} from './autocapture/page-view';
 import { EventTypes } from './events/event-types';
 import { SDK_VERSION } from './version';
 
@@ -42,8 +45,8 @@ export function init(config: AnalyticsConfig): AnalyticsTracker {
   if (_instance !== null) {
     console.warn(
       '[AnalyticsSDK] init() was called more than once. ' +
-      'The second call has been ignored. ' +
-      'If you need to re-initialise, call destroy() first.',
+        'The second call has been ignored. ' +
+        'If you need to re-initialise, call destroy() first.'
     );
     return _instance;
   }
@@ -62,13 +65,13 @@ export function init(config: AnalyticsConfig): AnalyticsTracker {
  */
 export function track(
   eventType: EventType,
-  properties?: EventProperties,
+  properties?: EventProperties
 ): void {
   if (_instance === null) {
     console.warn(
       '[AnalyticsSDK] track() was called before init(). ' +
-      'The event has been dropped. ' +
-      'Ensure init() is called at application startup.',
+        'The event has been dropped. ' +
+        'Ensure init() is called at application startup.'
     );
     return;
   }
@@ -80,7 +83,13 @@ export function track(
  * Persists across page reloads.
  * Safe to call before init().
  */
-export { optOut, optIn, isOptedOut, giveConsent, withdrawConsent } from './privacy';
+export {
+  optOut,
+  optIn,
+  isOptedOut,
+  giveConsent,
+  withdrawConsent,
+} from './privacy';
 
 /**
  * Flush all queued events immediately.
@@ -176,14 +185,11 @@ export class AnalyticsTracker {
     }
 
     if (this.config.debug) {
-      console.info(
-        `[AnalyticsSDK] Initialised v${SDK_VERSION}`,
-        {
-          siteToken: this.config.siteToken.slice(0, 8) + '...',
-          endpoint: this.config.endpoint,
-          sessionId: this.session.getSnapshot().sessionId,
-        },
-      );
+      console.info(`[AnalyticsSDK] Initialised v${SDK_VERSION}`, {
+        siteToken: this.config.siteToken.slice(0, 8) + '...',
+        endpoint: this.config.endpoint,
+        sessionId: this.session.getSnapshot().sessionId,
+      });
     }
   }
 
@@ -204,7 +210,9 @@ export class AnalyticsTracker {
     // Guard — do nothing if destroyed
     if (this.isDestroyed) {
       if (this.config.debug) {
-        console.warn('[AnalyticsSDK] track() called after destroy() — event dropped.');
+        console.warn(
+          '[AnalyticsSDK] track() called after destroy() — event dropped.'
+        );
       }
       return;
     }
@@ -213,7 +221,7 @@ export class AnalyticsTracker {
     if (!isTrackingAllowed()) {
       if (this.config.debug) {
         console.info(
-          `[AnalyticsSDK] Event "${eventType}" blocked by privacy settings.`,
+          `[AnalyticsSDK] Event "${eventType}" blocked by privacy settings.`
         );
       }
       return;
@@ -230,7 +238,7 @@ export class AnalyticsTracker {
     const event: TrackingEvent = buildEvent(
       eventType,
       sessionId,
-      Object.keys(sanitised).length > 0 ? sanitised : undefined,
+      Object.keys(sanitised).length > 0 ? sanitised : undefined
     );
 
     if (this.config.debug) {

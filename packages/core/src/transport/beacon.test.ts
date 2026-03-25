@@ -29,7 +29,11 @@ describe('sendBeacon', () => {
   it('returns not available when navigator.sendBeacon is missing', () => {
     vi.stubGlobal('navigator', undefined);
 
-    const result = sendBeacon([makeEvent('1')], 'https://api.example.com/ingest', 'abc');
+    const result = sendBeacon(
+      [makeEvent('1')],
+      'https://api.example.com/ingest',
+      'abc'
+    );
 
     expect(result).toEqual({ sent: false, reason: 'sendBeacon not available' });
   });
@@ -41,7 +45,7 @@ describe('sendBeacon', () => {
     const result = sendBeacon(
       [makeEvent('1')],
       'https://api.example.com/ingest?foo=1',
-      'site token',
+      'site token'
     );
 
     expect(result.sent).toBe(true);

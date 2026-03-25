@@ -17,7 +17,7 @@ export function merge(config: AnalyticsConfig): ResolvedConfig {
       ...config.autocapture,
     },
   };
-  
+
   return deepFreeze(resolved);
 }
 

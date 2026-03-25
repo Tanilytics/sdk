@@ -1,4 +1,3 @@
-
 /**
  * Every event type the SDK can produce.
  * Extend this union when adding new event types — do not use raw strings.

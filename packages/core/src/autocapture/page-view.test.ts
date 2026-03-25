@@ -17,16 +17,20 @@ function createBrowserHarness(initialHref = 'https://example.com/start') {
   }
 
   const historyObj = {
-    pushState: vi.fn((_state: unknown, _unused: string, url?: string | URL | null) => {
-      if (url !== undefined && url !== null) {
-        setHref(url);
+    pushState: vi.fn(
+      (_state: unknown, _unused: string, url?: string | URL | null) => {
+        if (url !== undefined && url !== null) {
+          setHref(url);
+        }
       }
-    }),
-    replaceState: vi.fn((_state: unknown, _unused: string, url?: string | URL | null) => {
-      if (url !== undefined && url !== null) {
-        setHref(url);
+    ),
+    replaceState: vi.fn(
+      (_state: unknown, _unused: string, url?: string | URL | null) => {
+        if (url !== undefined && url !== null) {
+          setHref(url);
+        }
       }
-    }),
+    ),
   };
 
   const windowObj = {
@@ -83,7 +87,10 @@ describe('autocapture/page-view', () => {
 
     expect(historyObj.pushState).not.toBe(originalPush);
     expect(historyObj.replaceState).not.toBe(originalReplace);
-    expect(windowObj.addEventListener).toHaveBeenCalledWith('popstate', expect.any(Function));
+    expect(windowObj.addEventListener).toHaveBeenCalledWith(
+      'popstate',
+      expect.any(Function)
+    );
 
     detachPageViewTracker();
 
@@ -95,7 +102,10 @@ describe('autocapture/page-view', () => {
     historyObj.replaceState({}, '', '/restored-replace');
     expect(originalPush).toHaveBeenCalledTimes(1);
     expect(originalReplace).toHaveBeenCalledTimes(1);
-    expect(windowObj.removeEventListener).toHaveBeenCalledWith('popstate', expect.any(Function));
+    expect(windowObj.removeEventListener).toHaveBeenCalledWith(
+      'popstate',
+      expect.any(Function)
+    );
     expect(track).not.toHaveBeenCalled();
   });
 
@@ -128,7 +138,9 @@ describe('autocapture/page-view', () => {
   });
 
   it('does not fire on hash-only URL changes', async () => {
-    const { historyObj } = createBrowserHarness('https://example.com/page?a=1#old');
+    const { historyObj } = createBrowserHarness(
+      'https://example.com/page?a=1#old'
+    );
     const track = vi.fn();
 
     attachPageViewTracker({ track, config: {} as never });
@@ -161,7 +173,9 @@ describe('autocapture/page-view', () => {
   });
 
   it('fires on popstate after URL changes', async () => {
-    const { dispatchPopState, setHref } = createBrowserHarness('https://example.com/a');
+    const { dispatchPopState, setHref } = createBrowserHarness(
+      'https://example.com/a'
+    );
     const track = vi.fn();
 
     attachPageViewTracker({ track, config: {} as never });
