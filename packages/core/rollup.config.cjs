@@ -6,11 +6,12 @@ module.exports = withNx(
     outputPath: './dist',
     tsConfig: './tsconfig.lib.json',
     compiler: 'swc',
-    format: ['esm'],
+    format: ['esm', 'iife'],
   },
   {
-    // Provide additional rollup configuration here. See: https://rollupjs.org/configuration-options
-    // e.g.
-    // output: { sourcemap: true },
+    output: {
+      // Required for IIFE builds so the bundle is exposed on window.
+      name: 'AnalyticsSdkCore',
+    },
   }
 );
