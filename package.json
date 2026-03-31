@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "size:check:core": "node tools/scripts/size-check.js core 15",
+    "size:check": "npm run size:check:core"
   },
   "private": true,
   "devDependencies": {
