@@ -18,6 +18,11 @@
     "dist",
     "!**/*.tsbuildinfo"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tanilytics/analytics-sdk.git",
+    "directory": "packages/core"
+  },
   "nx": {
     "tags": [
       "scope:core",
