@@ -5,7 +5,9 @@ const path = require('node:path');
 const zlib = require('node:zlib');
 
 function printUsage() {
-  console.error('Usage: node tools/scripts/size-check.js <packageName> <limitKb>');
+  console.error(
+    'Usage: node tools/scripts/size-check.js <packageName> <limitKb>'
+  );
   console.error('Example: node tools/scripts/size-check.js core 15');
 }
 

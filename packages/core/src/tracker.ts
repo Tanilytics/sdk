@@ -9,9 +9,19 @@ import { validateProperties } from './events/event-validator';
 import { EventQueue } from './transport';
 import type { QueueConfig } from './transport/queue';
 import {
+  attachClickTracker,
+  attachFormTracker,
   attachPageViewTracker,
+  attachScrollDepthTracker,
+  attachTimeOnPageTracker,
+  detachClickTracker,
+  detachFormTracker,
   detachPageViewTracker,
-} from './autocapture/page-view';
+  detachScrollDepthTracker,
+  detachTimeOnPageTracker,
+  resetScrollDepth,
+  resetTimeOnPage,
+} from './autocapture';
 import { EventTypes } from './events/event-types';
 import { SDK_VERSION } from './version';
 
@@ -168,19 +178,59 @@ export class AnalyticsTracker {
     // ── Step 6: Start autocapture ─────────────────────────────────────────────
     // Must happen LAST — all modules must be ready before autocapture
     // starts firing events into them.
-    const pageViewsEnabled = this.config.autocapture?.pageViews ?? false;
+    const { pageViews, clicks, formSubmissions, scrollDepth, timeOnPage } =
+      this.config.autocapture;
 
     // Fire the initial page view first
-    if (pageViewsEnabled) {
+    if (pageViews) {
       this.track(EventTypes.PAGE_VIEW, { navigationType: 'load' });
     }
 
     // Then attach the SPA navigation listener for subsequent page views
-    if (pageViewsEnabled) {
+    if (pageViews) {
       attachPageViewTracker({
+        track: (eventType, properties) => {
+          this.track(eventType as EventType, properties);
+
+          // Reset per-page autocapture state after SPA page view events.
+          if (eventType === EventTypes.PAGE_VIEW) {
+            if (scrollDepth) {
+              resetScrollDepth();
+            }
+            if (timeOnPage) {
+              resetTimeOnPage();
+            }
+          }
+        },
+        config: this.config,
+      });
+    }
+
+    if (clicks) {
+      attachClickTracker({
         track: (eventType, properties) =>
           this.track(eventType as EventType, properties),
-        config: this.config,
+      });
+    }
+
+    if (formSubmissions) {
+      attachFormTracker({
+        track: (eventType, properties) =>
+          this.track(eventType as EventType, properties),
+      });
+    }
+
+    if (scrollDepth) {
+      attachScrollDepthTracker({
+        track: (eventType, properties) =>
+          this.track(eventType as EventType, properties),
+      });
+    }
+
+    if (timeOnPage) {
+      attachTimeOnPageTracker({
+        track: (eventType, properties) =>
+          this.track(eventType as EventType, properties),
       });
     }
 
@@ -189,6 +239,13 @@ export class AnalyticsTracker {
         siteToken: this.config.siteToken.slice(0, 8) + '...',
         endpoint: this.config.endpoint,
         sessionId: this.session.getSnapshot().sessionId,
+        autocapture: {
+          pageViews,
+          clicks,
+          formSubmissions,
+          scrollDepth,
+          timeOnPage,
+        },
       });
     }
   }
@@ -268,6 +325,10 @@ export class AnalyticsTracker {
 
     // Remove SPA navigation listeners and restore original history functions
     detachPageViewTracker();
+    detachClickTracker();
+    detachFormTracker();
+    detachScrollDepthTracker();
+    detachTimeOnPageTracker();
 
     // Stop flush timer, remove unload listeners, flush remaining events
     this.queue.destroy();
