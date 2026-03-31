@@ -8,7 +8,7 @@ describe('validateAndMergeConfig', () => {
     expect(() =>
       validateAndMergeConfig({
         siteToken: 'short',
-      }),
+      })
     ).toThrow(/too short/);
   });
 
@@ -21,7 +21,9 @@ describe('validateAndMergeConfig', () => {
     expect(resolved.siteToken).toBe('sk_live_abc12345');
     expect(resolved.endpoint).toBe(DEFAULT_CONFIG.endpoint);
     expect(resolved.autocapture.clicks).toBe(false);
-    expect(resolved.autocapture.pageViews).toBe(DEFAULT_CONFIG.autocapture.pageViews);
+    expect(resolved.autocapture.pageViews).toBe(
+      DEFAULT_CONFIG.autocapture.pageViews
+    );
 
     expect(Object.isFrozen(resolved)).toBe(true);
     expect(Object.isFrozen(resolved.autocapture)).toBe(true);

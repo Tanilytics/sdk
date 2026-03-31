@@ -1,7 +1,6 @@
-
 export interface RetryOptions {
-  maxAttempts: number;    // Total attempts including the first one
-  baseDelayMs: number;    // Delay before second attempt
+  maxAttempts: number; // Total attempts including the first one
+  baseDelayMs: number; // Delay before second attempt
 }
 
 export interface RetryResult<T> {
@@ -25,7 +24,7 @@ const DEFAULT_OPTIONS: RetryOptions = {
  */
 export async function withRetry<T extends { ok: boolean; retryable: boolean }>(
   fn: () => Promise<T>,
-  opts: Partial<RetryOptions> = {},
+  opts: Partial<RetryOptions> = {}
 ): Promise<RetryResult<T>> {
   const options = { ...DEFAULT_OPTIONS, ...opts };
   let lastResult: T | undefined;

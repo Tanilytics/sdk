@@ -1,9 +1,7 @@
-
 const KEYS = {
   OPT_OUT: 'tanilytics_optout',
   CONSENT: 'tanilytics_consent',
 } as const;
-
 
 export function readOptOut(): boolean {
   try {
@@ -27,7 +25,7 @@ export function writeOptOut(): void {
   } catch {
     throw new Error(
       '[AnalyticsSDK] Could not persist opt-out — localStorage is unavailable. ' +
-      'The opt-out will not survive a page reload.',
+        'The opt-out will not survive a page reload.'
     );
   }
 }
@@ -45,7 +43,7 @@ export function writeConsent(): void {
     localStorage.setItem(KEYS.CONSENT, '1');
   } catch {
     throw new Error(
-      '[AnalyticsSDK] Could not persist consent — localStorage is unavailable.',
+      '[AnalyticsSDK] Could not persist consent — localStorage is unavailable.'
     );
   }
 }

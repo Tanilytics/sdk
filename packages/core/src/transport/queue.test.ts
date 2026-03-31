@@ -35,7 +35,9 @@ describe('EventQueue', () => {
   });
 
   it('flush drains all queued events in sequential batches', async () => {
-    let resolveFirstSend: ((value: { ok: boolean; retryable: boolean }) => void) | undefined;
+    let resolveFirstSend:
+      | ((value: { ok: boolean; retryable: boolean }) => void)
+      | undefined;
 
     const mockSendBatch = vi.mocked(sendBatch);
     mockSendBatch
@@ -43,7 +45,7 @@ describe('EventQueue', () => {
         () =>
           new Promise((resolve) => {
             resolveFirstSend = resolve;
-          }),
+          })
       )
       .mockResolvedValue({ ok: true, retryable: false });
 
@@ -75,14 +77,16 @@ describe('EventQueue', () => {
   });
 
   it('destroy does not clear events queued while another flush is in progress', async () => {
-    let resolveFirstSend: ((value: { ok: boolean; retryable: boolean }) => void) | undefined;
+    let resolveFirstSend:
+      | ((value: { ok: boolean; retryable: boolean }) => void)
+      | undefined;
 
     const mockSendBatch = vi.mocked(sendBatch);
     mockSendBatch.mockImplementationOnce(
       () =>
         new Promise((resolve) => {
           resolveFirstSend = resolve;
-        }),
+        })
     );
 
     const queue = new EventQueue({

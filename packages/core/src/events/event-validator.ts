@@ -18,7 +18,6 @@ const RESERVED_KEYS = new Set([
 const MAX_PROPERTIES = 20;
 const MAX_STRING_LENGTH = 500;
 
-
 export interface ValidationResult {
   valid: boolean;
   sanitised: EventProperties;
@@ -27,9 +26,8 @@ export interface ValidationResult {
 
 export function validateProperties(
   properties: EventProperties | undefined,
-  debug: boolean,
+  debug: boolean
 ): ValidationResult {
-
   if (properties === undefined) {
     return { valid: true, sanitised: {}, warnings: [] };
   }
@@ -42,7 +40,7 @@ export function validateProperties(
   if (keys.length > MAX_PROPERTIES) {
     warnings.push(
       `[AnalyticsSDK] track() received ${keys.length} properties but the maximum is ${MAX_PROPERTIES}. ` +
-      `Extra properties will be dropped.`,
+        `Extra properties will be dropped.`
     );
   }
 
@@ -52,7 +50,7 @@ export function validateProperties(
     if (RESERVED_KEYS.has(key)) {
       warnings.push(
         `[AnalyticsSDK] Property key "${key}" is reserved and cannot be used. ` +
-        `It has been dropped. Rename it to something like "custom_${key}".`,
+          `It has been dropped. Rename it to something like "custom_${key}".`
       );
       continue;
     }
@@ -63,8 +61,8 @@ export function validateProperties(
     if (!isAllowedValue(value)) {
       warnings.push(
         `[AnalyticsSDK] Property "${key}" has an invalid value type ` +
-        `(${typeof value}). Only string, number, boolean, and null are allowed. ` +
-        `It has been dropped.`,
+          `(${typeof value}). Only string, number, boolean, and null are allowed. ` +
+          `It has been dropped.`
       );
       continue;
     }
@@ -72,7 +70,7 @@ export function validateProperties(
     // Truncate long strings
     if (typeof value === 'string' && value.length > MAX_STRING_LENGTH) {
       warnings.push(
-        `[AnalyticsSDK] Property "${key}" was truncated to ${MAX_STRING_LENGTH} characters.`,
+        `[AnalyticsSDK] Property "${key}" was truncated to ${MAX_STRING_LENGTH} characters.`
       );
       sanitised[key] = value.slice(0, MAX_STRING_LENGTH);
       continue;
@@ -93,7 +91,9 @@ export function validateProperties(
   };
 }
 
-function isAllowedValue(value: unknown): value is string | number | boolean | null {
+function isAllowedValue(
+  value: unknown
+): value is string | number | boolean | null {
   if (value === null) return true;
   const t = typeof value;
   return t === 'string' || t === 'number' || t === 'boolean';

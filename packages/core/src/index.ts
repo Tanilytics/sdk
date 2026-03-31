@@ -11,7 +11,13 @@ export { init, track, flush, destroy } from './tracker';
 
 // ── Privacy functions ─────────────────────────────────────────────────────────
 // Re-exported from tracker.ts which re-exports them from privacy/
-export { optOut, optIn, isOptedOut, giveConsent, withdrawConsent } from './privacy';
+export {
+  optOut,
+  optIn,
+  isOptedOut,
+  giveConsent,
+  withdrawConsent,
+} from './privacy';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 export { EventTypes } from './events/event-types';

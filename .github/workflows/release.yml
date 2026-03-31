@@ -11,9 +11,9 @@ on:
         default: 'patch'
         type: choice
         options:
-          - patch    # 0.1.0 → 0.1.1  bug fixes
-          - minor    # 0.1.0 → 0.2.0  new features, backwards compatible
-          - major    # 0.1.0 → 1.0.0  breaking changes
+          - patch # 0.1.0 → 0.1.1  bug fixes
+          - minor # 0.1.0 → 0.2.0  new features, backwards compatible
+          - major # 0.1.0 → 1.0.0  breaking changes
 
 # Only one release can run at a time
 concurrency:
@@ -21,8 +21,8 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write   # needed to push tags and create GitHub Release
-  id-token: write   # needed for npm provenance
+  contents: write # needed to push tags and create GitHub Release
+  id-token: write # needed for npm provenance
 
 jobs:
   release:
@@ -154,5 +154,3 @@ jobs:
           generateReleaseNotes: true
           artifacts: |
             packages/core/dist/index.iife.js
-```
-

@@ -17,14 +17,14 @@ export function merge(config: AnalyticsConfig): ResolvedConfig {
       ...config.autocapture,
     },
   };
-  
+
   return deepFreeze(resolved);
 }
 
 function deepFreeze<T>(obj: T): T {
   if (obj && typeof obj === 'object' && !Object.isFrozen(obj)) {
     Object.getOwnPropertyNames(obj).forEach((prop) => {
-      const value = (obj as any)[prop];
+      const value = (obj as Record<string, unknown>)[prop];
       deepFreeze(value);
     });
     Object.freeze(obj);

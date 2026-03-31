@@ -6,15 +6,15 @@ export function validate(config: AnalyticsConfig): void {
   if (!config.siteToken || typeof config.siteToken !== 'string') {
     throw new Error(
       '[AnalyticsSDK] siteToken is required.\n' +
-      'Get yours from the dashboard under Settings → Sites.\n' +
-      'Example: init({ siteToken: "sk_live_abc123" })',
+        'Get yours from the dashboard under Settings → Sites.\n' +
+        'Example: init({ siteToken: "sk_live_abc123" })'
     );
   }
 
   if (config.siteToken.trim().length < 8) {
     throw new Error(
       `[AnalyticsSDK] siteToken "${config.siteToken}" looks invalid — too short.\n` +
-      'Check your dashboard for the correct token.',
+        'Check your dashboard for the correct token.'
     );
   }
 
@@ -28,21 +28,21 @@ export function validate(config: AnalyticsConfig): void {
     } catch {
       throw new Error(
         `[AnalyticsSDK] endpoint "${config.endpoint}" is not a valid URL.\n` +
-        'Example: endpoint: "https://ingest.your-instance.com/api/v1/events"',
+          'Example: endpoint: "https://ingest.your-instance.com/api/v1/events"'
       );
     }
-    
+
     const isLocalhost =
       parsed.hostname === 'localhost' ||
       parsed.hostname === '127.0.0.1' ||
       parsed.hostname.endsWith('.local');
 
-if (parsed.protocol !== 'https:' && !isLocalhost) {
-  throw new Error(
-    `[AnalyticsSDK] endpoint must use HTTPS. Received: "${config.endpoint}"\n` +
-    'HTTP is only allowed for localhost during development.',
-  );
-}
+    if (parsed.protocol !== 'https:' && !isLocalhost) {
+      throw new Error(
+        `[AnalyticsSDK] endpoint must use HTTPS. Received: "${config.endpoint}"\n` +
+          'HTTP is only allowed for localhost during development.'
+      );
+    }
   }
 
   // ── flushInterval ─────────────────────────────────────────────────────────
@@ -55,7 +55,7 @@ if (parsed.protocol !== 'https:' && !isLocalhost) {
     ) {
       throw new Error(
         `[AnalyticsSDK] flushInterval must be an integer >= 500ms.\n` +
-        `Received: ${config.flushInterval}`,
+          `Received: ${config.flushInterval}`
       );
     }
   }
@@ -71,66 +71,68 @@ if (parsed.protocol !== 'https:' && !isLocalhost) {
     ) {
       throw new Error(
         `[AnalyticsSDK] maxBatchSize must be an integer between 1 and 200.\n` +
-        `Received: ${config.maxBatchSize}`,
+          `Received: ${config.maxBatchSize}`
       );
     }
   }
 
   // ── maxQueueSize ──────────────────────────────────────────────────────────
-if (config.maxQueueSize !== undefined) {
-  if (
-    typeof config.maxQueueSize !== 'number' ||
-    !Number.isInteger(config.maxQueueSize) ||
-    config.maxQueueSize < 1 ||
-    config.maxQueueSize > 10000
-  ) {
-    throw new Error(
-      `[AnalyticsSDK] maxQueueSize must be an integer between 1 and 10000.\n` +
-      `Received: ${config.maxQueueSize}`,
-    );
+  if (config.maxQueueSize !== undefined) {
+    if (
+      typeof config.maxQueueSize !== 'number' ||
+      !Number.isInteger(config.maxQueueSize) ||
+      config.maxQueueSize < 1 ||
+      config.maxQueueSize > 10000
+    ) {
+      throw new Error(
+        `[AnalyticsSDK] maxQueueSize must be an integer between 1 and 10000.\n` +
+          `Received: ${config.maxQueueSize}`
+      );
+    }
   }
-}
-// ── debug ──────────────────────────────────────────────────────────
+  // ── debug ──────────────────────────────────────────────────────────
   if (config.debug !== undefined && typeof config.debug !== 'boolean') {
     throw new Error(
-      `[AnalyticsSDK] debug must be a boolean.\n` +
-      `Received: ${config.debug}`,
+      `[AnalyticsSDK] debug must be a boolean.\n` + `Received: ${config.debug}`
     );
   }
-  
+
   // ── requireConsent ──────────────────────────────────────────────────────────
-  if (config.requireConsent !== undefined && typeof config.requireConsent !== 'boolean') {
+  if (
+    config.requireConsent !== undefined &&
+    typeof config.requireConsent !== 'boolean'
+  ) {
     throw new Error(
       `[AnalyticsSDK] requireConsent must be a boolean.\n` +
-      `Received: ${config.requireConsent}`,
+        `Received: ${config.requireConsent}`
     );
   }
   // ── respectDoNotTrack ──────────────────────────────────────────────────────────
-  if (config.respectDoNotTrack !== undefined && typeof config.respectDoNotTrack !== 'boolean') {
+  if (
+    config.respectDoNotTrack !== undefined &&
+    typeof config.respectDoNotTrack !== 'boolean'
+  ) {
     throw new Error(
       `[AnalyticsSDK] respectDoNotTrack must be a boolean.\n` +
-      `Received: ${config.respectDoNotTrack}`,
+        `Received: ${config.respectDoNotTrack}`
     );
   }
-  
+
   // ── autocapture ──────────────────────────────────────────────────────────
   if (config.autocapture !== undefined) {
     if (typeof config.autocapture !== 'object' || config.autocapture === null) {
       throw new Error(
         `[AnalyticsSDK] autocapture must be an object.\n` +
-        `Received: ${config.autocapture}`,
+          `Received: ${config.autocapture}`
       );
     }
-  for (const [key, value] of Object.entries(config.autocapture ?? {})) {
-    if (typeof value !== 'boolean') {
-      throw new Error(
-        `[AnalyticsSDK] autocapture.${key} must be a boolean.\n` +
-        `Received: ${value}`,
-      );
+    for (const [key, value] of Object.entries(config.autocapture ?? {})) {
+      if (typeof value !== 'boolean') {
+        throw new Error(
+          `[AnalyticsSDK] autocapture.${key} must be a boolean.\n` +
+            `Received: ${value}`
+        );
+      }
     }
   }
-    
 }
-}
-
-  

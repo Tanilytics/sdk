@@ -2,7 +2,11 @@
   "name": "@org/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "format:check": "prettier --check .",
+    "size:check:core": "node tools/scripts/size-check.js core 15",
+    "size:check": "npm run size:check:core"
+  },
   "private": true,
   "devDependencies": {
     "@eslint/js": "^9.8.0",
@@ -22,6 +26,7 @@
     "@vitest/ui": "4.0.9",
     "eslint": "~8.57.0",
     "jiti": "2.4.2",
+    "jsdom": "^29.0.1",
     "jsonc-eslint-parser": "^2.1.0",
     "nx": "^22.5.3",
     "prettier": "^2.6.2",
@@ -32,7 +37,7 @@
     "typescript-eslint": "^8.40.0",
     "verdaccio": "^6.0.5",
     "vite": "^7.0.0",
-    "vitest": "4.0.9"
+    "vitest": "^4.0.9"
   },
   "workspaces": [
     "packages/*",
@@ -50,6 +55,5 @@
         }
       }
     }
-  },
-  "dependencies": {}
+  }
 }

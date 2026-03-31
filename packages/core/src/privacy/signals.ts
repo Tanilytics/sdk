@@ -1,6 +1,5 @@
 import { readOptOut, readConsent } from './storage';
 
-
 let _requireConsent = false;
 let _respectDoNotTrack = true;
 
@@ -13,19 +12,21 @@ export function configureSignals(opts: {
 }
 
 export function isOptedOut(): boolean {
-    return readOptOut();
+  return readOptOut();
 }
 
 export function hasConsent(): boolean {
-    return readConsent();
+  return readConsent();
 }
 
 export function isDoNotTrackEnabled(): boolean {
   try {
+    const legacyNavigator = navigator as Navigator & { msDoNotTrack?: string };
+
     return (
       navigator.doNotTrack === '1' ||
       // Legacy IE/Edge
-      (navigator as any).msDoNotTrack === '1'
+      legacyNavigator.msDoNotTrack === '1'
     );
   } catch {
     return false;
@@ -33,14 +34,14 @@ export function isDoNotTrackEnabled(): boolean {
 }
 
 export function computeIsTrackingAllowed(): boolean {
-    if (isOptedOut()) {
-        return false;
-    }
-    if ( _respectDoNotTrack && isDoNotTrackEnabled() ) {
-        return false;
-    }
-    if (_requireConsent && !hasConsent()) {
-        return false;
-    }
-    return true;
+  if (isOptedOut()) {
+    return false;
+  }
+  if (_respectDoNotTrack && isDoNotTrackEnabled()) {
+    return false;
+  }
+  if (_requireConsent && !hasConsent()) {
+    return false;
+  }
+  return true;
 }

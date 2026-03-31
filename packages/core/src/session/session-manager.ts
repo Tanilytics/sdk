@@ -1,15 +1,13 @@
 import { generateSessionId } from './session-id';
 import { loadSession, saveSession, clearSession } from './session-storage';
 
-
 export interface SessionData {
   sessionId: string;
-  startedAt: number;        // Unix ms when this session began
-  lastActivityAt: number;   // Unix ms of the last recorded activity
+  startedAt: number; // Unix ms when this session began
+  lastActivityAt: number; // Unix ms of the last recorded activity
 }
 
 const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
-
 
 /**
  * Manages the lifecycle of a user session.
@@ -26,7 +24,6 @@ export class SessionManager {
     this.current = this.loadOrCreate();
   }
 
-
   public getSessionId(): string {
     if (this.isExpired()) {
       this.startNewSession();
@@ -36,13 +33,9 @@ export class SessionManager {
     return this.current.sessionId;
   }
 
-
   public getSnapshot(): Readonly<SessionData> {
     return { ...this.current };
   }
-
-  
-
 
   private loadOrCreate(): SessionData {
     const stored = loadSession();
@@ -74,7 +67,8 @@ export class SessionManager {
   }
 
   private isExpired(session?: SessionData): boolean {
-    const inactiveFor = Date.now() - (session?.lastActivityAt ?? this.current.lastActivityAt);
+    const inactiveFor =
+      Date.now() - (session?.lastActivityAt ?? this.current.lastActivityAt);
     return inactiveFor > SESSION_TIMEOUT_MS;
   }
 

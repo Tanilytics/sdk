@@ -17,16 +17,13 @@ export function configurePrivacy(opts: {
   configureSignals(opts);
 }
 
-
 export function isTrackingAllowed(): boolean {
   return computeIsTrackingAllowed();
 }
 
-
 export function optOut(): void {
   writeOptOut();
 }
-
 
 export function optIn(): void {
   clearOptOut();
@@ -35,7 +32,6 @@ export function optIn(): void {
 export function isOptedOut(): boolean {
   return checkOptedOut();
 }
-
 
 export function giveConsent(): void {
   writeConsent();

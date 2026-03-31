@@ -3,14 +3,12 @@ import { sendBatch } from './sender';
 import { sendBeacon } from './beacon';
 import type { SenderConfig } from './sender';
 
-
 export interface QueueConfig {
   maxBatchSize: number;
   maxQueueSize: number;
   flushInterval: number;
   senderConfig: SenderConfig;
 }
-
 
 export class EventQueue {
   private events: TrackingEvent[] = [];
@@ -31,10 +29,9 @@ export class EventQueue {
     this.attachUnloadListeners();
   }
 
-
   public enqueue(event: TrackingEvent): void {
     if (this.events.length >= this.config.maxQueueSize) {
-      this.events.shift(); 
+      this.events.shift();
     }
 
     this.events.push(event);
@@ -44,7 +41,6 @@ export class EventQueue {
     }
   }
 
-  
   public async flush(): Promise<void> {
     // Prevent concurrent flushes
     if (this.isFlushing || this.events.length === 0) return;
@@ -74,7 +70,6 @@ export class EventQueue {
     }
   }
 
-
   public destroy(): void {
     this.stopTimer();
     this.detachUnloadListeners();
@@ -84,7 +79,6 @@ export class EventQueue {
   public get size(): number {
     return this.events.length;
   }
-
 
   private startTimer(): void {
     this.timer = setInterval(() => {
@@ -122,7 +116,7 @@ export class EventQueue {
     const result = sendBeacon(
       this.events,
       this.config.senderConfig.endpoint,
-      this.config.senderConfig.siteToken,
+      this.config.senderConfig.siteToken
     );
 
     if (result.sent) {
