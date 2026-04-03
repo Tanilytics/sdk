@@ -51,6 +51,7 @@ function handleSubmit(event: SubmitEvent): void {
   if (form.hasAttribute('data-analytics-ignore')) return;
 
   _track(EventTypes.FORM_SUBMIT, {
+    eventName: 'form_submit',
     formId: form.id || null,
     formName: form.name || null,
     formAction: form.action || null,

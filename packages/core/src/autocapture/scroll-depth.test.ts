@@ -73,12 +73,12 @@ afterEach(() => {
 });
 
 describe('Scroll depth tracking', () => {
-  it('fires scroll_depth event when sentinel becomes visible', () => {
+  it('fires scroll event when sentinel becomes visible', () => {
     const sentinel = document.querySelector('[data-analytics-sentinel="25"]')!;
     mockObserver.trigger(sentinel);
 
     expect(mockTrack).toHaveBeenCalledWith(
-      'scroll_depth',
+      'scroll',
       expect.objectContaining({ milestone: 25 })
     );
   });

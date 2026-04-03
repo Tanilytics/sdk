@@ -12,7 +12,6 @@ interface TimeOnPageOptions {
 let _track: TrackFn | null = null;
 let _activeTime = 0; // Accumulated active milliseconds
 let _visibleSince: number | null = null; // When the page last became visible
-let _currentUrl = ''; // Track which URL this measurement belongs to
 
 let _onVisibilityChange: (() => void) | null = null;
 let _onPageHide: (() => void) | null = null;
@@ -25,7 +24,6 @@ export function attachTimeOnPageTracker(opts: TimeOnPageOptions): void {
   if (_onVisibilityChange !== null) return; // Already attached
 
   _track = opts.track;
-  _currentUrl = window.location.href;
 
   // Start the timer if page is already visible
   if (document.visibilityState === 'visible') {
@@ -40,7 +38,7 @@ export function attachTimeOnPageTracker(opts: TimeOnPageOptions): void {
 }
 
 export function detachTimeOnPageTracker(): void {
-  // Fire final time_on_page event before detaching
+  // Fire final page_leave event before detaching
   flushActiveTime();
 
   if (_onVisibilityChange !== null) {
@@ -68,7 +66,6 @@ export function resetTimeOnPage(): void {
 
   // Reset for the new page
   _activeTime = 0;
-  _currentUrl = window.location.href;
   _visibleSince = document.visibilityState === 'visible' ? Date.now() : null;
 }
 
@@ -87,7 +84,7 @@ function handleVisibilityChange(): void {
 }
 
 function handlePageHide(): void {
-  // Page is being unloaded — fire the final time_on_page event
+  // Page is being unloaded — fire the final page_leave event
   accumulateActiveTime();
   flushActiveTime();
 }
@@ -107,9 +104,8 @@ function flushActiveTime(): void {
   // Anything under 1 second is probably a redirect or accidental visit
   if (_activeTime < 1000 || _track === null) return;
 
-  _track(EventTypes.TIME_ON_PAGE, {
+  _track(EventTypes.PAGE_LEAVE, {
     duration: _activeTime,
-    url: _currentUrl,
   });
 
   _activeTime = 0;

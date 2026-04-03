@@ -131,7 +131,7 @@ function handleIntersection(entries: IntersectionObserverEntry[]): void {
 
     if (_track === null) return;
 
-    _track(EventTypes.SCROLL_DEPTH, {
+    _track(EventTypes.SCROLL, {
       milestone,
       timeToReach: Date.now() - _pageLoadTime,
     });

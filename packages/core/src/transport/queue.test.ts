@@ -14,18 +14,10 @@ import { sendBatch } from './sender';
 
 function makeEvent(id: string): TrackingEvent {
   return {
-    eventId: id,
-    siteToken: 'site_token',
-    eventType: 'custom',
-    clientTimestamp: Date.now(),
+    event_id: id,
+    event_type: 'custom',
+    timestamp: Date.now(),
     url: 'https://example.com',
-    referrer: '',
-    sessionId: 'session_1',
-    deviceType: 'desktop',
-    screenWidth: 1920,
-    viewportWidth: 1200,
-    language: 'en-US',
-    sdkVersion: '0.0.0-test',
   };
 }
 
@@ -60,11 +52,11 @@ describe('EventQueue', () => {
       },
     });
 
-    queue.enqueue(makeEvent('1'));
-    queue.enqueue(makeEvent('2'));
-    queue.enqueue(makeEvent('3'));
-    queue.enqueue(makeEvent('4'));
-    queue.enqueue(makeEvent('5'));
+    queue.enqueue(makeEvent('1'), 'visitor-1');
+    queue.enqueue(makeEvent('2'), 'visitor-1');
+    queue.enqueue(makeEvent('3'), 'visitor-1');
+    queue.enqueue(makeEvent('4'), 'visitor-1');
+    queue.enqueue(makeEvent('5'), 'visitor-1');
 
     resolveFirstSend?.({ ok: true, retryable: false });
     await Promise.resolve();
@@ -100,12 +92,12 @@ describe('EventQueue', () => {
       },
     });
 
-    queue.enqueue(makeEvent('in-flight'));
+    queue.enqueue(makeEvent('in-flight'), 'visitor-1');
 
     // Let the first flush start, then queue an additional event that
     // should not be wiped by destroy().
     await Promise.resolve();
-    queue.enqueue(makeEvent('queued-during-flush'));
+    queue.enqueue(makeEvent('queued-during-flush'), 'visitor-1');
 
     queue.destroy();
 

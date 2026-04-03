@@ -5,18 +5,10 @@ import { sendBeacon } from './beacon';
 
 function makeEvent(id: string): TrackingEvent {
   return {
-    eventId: id,
-    siteToken: 'site_token',
-    eventType: 'custom',
-    clientTimestamp: Date.now(),
+    event_id: id,
+    event_type: 'custom',
+    timestamp: Date.now(),
     url: 'https://example.com',
-    referrer: '',
-    sessionId: 'session_1',
-    deviceType: 'desktop',
-    screenWidth: 1920,
-    viewportWidth: 1200,
-    language: 'en-US',
-    sdkVersion: '0.0.0-test',
   };
 }
 
@@ -32,7 +24,8 @@ describe('sendBeacon', () => {
     const result = sendBeacon(
       [makeEvent('1')],
       'https://api.example.com/ingest',
-      'abc'
+      'abc',
+      'visitor-1'
     );
 
     expect(result).toEqual({ sent: false, reason: 'sendBeacon not available' });
@@ -45,7 +38,8 @@ describe('sendBeacon', () => {
     const result = sendBeacon(
       [makeEvent('1')],
       'https://api.example.com/ingest?foo=1',
-      'site token'
+      'site token',
+      'visitor-1'
     );
 
     expect(result.sent).toBe(true);

@@ -27,12 +27,12 @@ afterEach(() => {
 });
 
 describe('Time on page tracking', () => {
-  it('fires time_on_page event on page hide', () => {
+  it('fires page_leave event on page hide', () => {
     vi.advanceTimersByTime(5000);
     window.dispatchEvent(new Event('pagehide'));
 
     expect(mockTrack).toHaveBeenCalledWith(
-      'time_on_page',
+      'page_leave',
       expect.objectContaining({ duration: expect.any(Number) })
     );
   });
