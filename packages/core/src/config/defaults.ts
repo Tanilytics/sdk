@@ -1,7 +1,10 @@
 import type { ResolvedConfig } from './types';
 
-export const DEFAULT_CONFIG: Omit<ResolvedConfig, 'siteToken'> = {
-  endpoint: 'https://ingest-service/api/v1/events',
+export const INGESTION_URL_ENV_VAR = 'INGESTION_URL';
+
+type BaseDefaultConfig = Omit<ResolvedConfig, 'siteToken' | 'endpoint'>;
+
+export const DEFAULT_CONFIG: BaseDefaultConfig = {
   flushInterval: 3000,
   maxBatchSize: 50,
   maxQueueSize: 1000,
@@ -16,3 +19,23 @@ export const DEFAULT_CONFIG: Omit<ResolvedConfig, 'siteToken'> = {
     formSubmissions: true,
   },
 };
+
+function readIngestionUrlFromEnv(): string | undefined {
+  if (typeof process === 'undefined' || !process.env) {
+    return undefined;
+  }
+
+  return process.env[INGESTION_URL_ENV_VAR];
+}
+
+export function resolveDefaultEndpoint(explicitEndpoint?: string): string {
+  const endpoint = explicitEndpoint ?? readIngestionUrlFromEnv();
+
+  if (typeof endpoint === 'string' && endpoint.trim().length > 0) {
+    return endpoint;
+  }
+
+  throw new Error(
+    `[AnalyticsSDK] endpoint is required. Set ${INGESTION_URL_ENV_VAR} or pass endpoint explicitly in init().`
+  );
+}

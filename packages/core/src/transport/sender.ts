@@ -1,4 +1,5 @@
-import type { TrackingEvent } from '../types';
+import type { IngestionEvent } from '../types';
+import { buildPayload } from './payload';
 import { withRetry } from './retry';
 
 export interface SenderConfig {
@@ -15,10 +16,11 @@ export interface SendResult {
 }
 
 export async function sendBatch(
-  events: TrackingEvent[],
-  config: SenderConfig
+  events: IngestionEvent[],
+  config: SenderConfig,
+  visitorId: string
 ): Promise<SendResult> {
-  const result = await withRetry(() => attemptSend(events, config), {
+  const result = await withRetry(() => attemptSend(events, config, visitorId), {
     maxAttempts: 3,
     baseDelayMs: 1000,
   });
@@ -43,19 +45,22 @@ export async function sendBatch(
 }
 
 async function attemptSend(
-  events: TrackingEvent[],
-  config: SenderConfig
+  events: IngestionEvent[],
+  config: SenderConfig,
+  visitorId: string
 ): Promise<SendResult> {
   let response: Response;
 
   try {
+    const payload = buildPayload(events, visitorId, config.siteToken);
+
     response = await fetch(config.endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-site-token': config.siteToken,
       },
-      body: JSON.stringify({ events }),
+      body: JSON.stringify(payload),
       // keepalive allows the request to outlive the page
       // Important for events sent just before navigation
       keepalive: true,

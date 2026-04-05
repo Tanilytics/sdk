@@ -18,6 +18,13 @@ export function validate(config: AnalyticsConfig): void {
     );
   }
 
+  if (config.siteToken.trim().length > 64) {
+    throw new Error(
+      `[AnalyticsSDK] siteToken "${config.siteToken}" is too long.\n` +
+        'The ingestion schema limits site_id to 64 characters.'
+    );
+  }
+
   // ── endpoint ─────────────────────────────────────────────────────────────
 
   if (config.endpoint !== undefined) {

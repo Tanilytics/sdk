@@ -1,23 +1,5 @@
 import type { EventProperties } from '../types';
 
-const RESERVED_KEYS = new Set([
-  'eventId',
-  'siteToken',
-  'eventType',
-  'clientTimestamp',
-  'url',
-  'referrer',
-  'sessionId',
-  'deviceType',
-  'screenWidth',
-  'viewportWidth',
-  'language',
-  'sdkVersion',
-]);
-
-const MAX_PROPERTIES = 20;
-const MAX_STRING_LENGTH = 500;
-
 export interface ValidationResult {
   valid: boolean;
   sanitised: EventProperties;
@@ -32,51 +14,22 @@ export function validateProperties(
     return { valid: true, sanitised: {}, warnings: [] };
   }
 
-  const sanitised: EventProperties = {};
   const warnings: string[] = [];
 
-  // Check total count first
-  const keys = Object.keys(properties);
-  if (keys.length > MAX_PROPERTIES) {
-    warnings.push(
-      `[AnalyticsSDK] track() received ${keys.length} properties but the maximum is ${MAX_PROPERTIES}. ` +
-        `Extra properties will be dropped.`
-    );
-  }
+  if (
+    typeof properties !== 'object' ||
+    properties === null ||
+    Array.isArray(properties)
+  ) {
+    const warning =
+      '[AnalyticsSDK] track() received invalid properties. Expected an object.';
+    warnings.push(warning);
 
-  // Process each property — take up to MAX_PROPERTIES
-  for (const key of keys.slice(0, MAX_PROPERTIES)) {
-    // Check for reserved keys
-    if (RESERVED_KEYS.has(key)) {
-      warnings.push(
-        `[AnalyticsSDK] Property key "${key}" is reserved and cannot be used. ` +
-          `It has been dropped. Rename it to something like "custom_${key}".`
-      );
-      continue;
+    if (debug) {
+      console.warn(warning);
     }
 
-    const value = properties[key];
-
-    // Check value type — must be a primitive
-    if (!isAllowedValue(value)) {
-      warnings.push(
-        `[AnalyticsSDK] Property "${key}" has an invalid value type ` +
-          `(${typeof value}). Only string, number, boolean, and null are allowed. ` +
-          `It has been dropped.`
-      );
-      continue;
-    }
-
-    // Truncate long strings
-    if (typeof value === 'string' && value.length > MAX_STRING_LENGTH) {
-      warnings.push(
-        `[AnalyticsSDK] Property "${key}" was truncated to ${MAX_STRING_LENGTH} characters.`
-      );
-      sanitised[key] = value.slice(0, MAX_STRING_LENGTH);
-      continue;
-    }
-
-    sanitised[key] = value;
+    return { valid: false, sanitised: {}, warnings };
   }
 
   // Log warnings in debug mode
@@ -85,16 +38,8 @@ export function validateProperties(
   }
 
   return {
-    valid: warnings.length === 0,
-    sanitised,
+    valid: true,
+    sanitised: { ...properties },
     warnings,
   };
-}
-
-function isAllowedValue(
-  value: unknown
-): value is string | number | boolean | null {
-  if (value === null) return true;
-  const t = typeof value;
-  return t === 'string' || t === 'number' || t === 'boolean';
 }

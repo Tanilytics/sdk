@@ -1,6 +1,4 @@
-import type { TrackingEvent, EventType, EventProperties } from '../types';
-import { getDeviceType } from '../config/device';
-import { SDK_VERSION } from '../version';
+import type { IngestionEvent, EventType, EventProperties } from '../types';
 
 let _siteToken = '';
 
@@ -21,24 +19,15 @@ export function __resetEventBuilderStateForTests(): void {
 }
 
 /**
- * Builds a complete TrackingEvent from minimal inputs.
+ * Builds a single ingestion event item from minimal inputs.
  *
- * The caller provides:
- *   - eventType  → what kind of event
- *   - sessionId  → which session it belongs to
- *   - properties → optional event-specific data
- *
- * Everything else is read from the browser environment or module state.
- *
- * @example
- * const event = buildEvent('page_view', 'session-abc123')
- * const event = buildEvent('scroll_depth', 'session-abc123', { milestone: 50 })
+ * The caller provides the event type and optional properties.
+ * Everything else is read from the browser environment.
  */
 export function buildEvent(
   eventType: EventType,
-  sessionId: string,
   properties?: EventProperties
-): TrackingEvent {
+): IngestionEvent {
   if (_siteToken.trim().length === 0) {
     throw new Error(
       '[AnalyticsSDK] Site token is not configured. ' +
@@ -46,34 +35,28 @@ export function buildEvent(
     );
   }
 
-  return {
-    // Identity
-    eventId: generateEventId(),
-    siteToken: _siteToken,
-    eventType,
-
-    // Timing
-    clientTimestamp: Date.now(),
-
-    // Page context
+  const event: IngestionEvent = {
+    event_id: generateEventId(),
+    event_type: eventType,
+    timestamp: Date.now(),
     url: readUrl(),
-    referrer: readReferrer(),
-
-    // Session
-    sessionId,
-
-    // Device
-    deviceType: getDeviceType(),
-    screenWidth: readScreenWidth(),
-    viewportWidth: readViewportWidth(),
-    language: readLanguage(),
-
-    // SDK metadata
-    sdkVersion: SDK_VERSION,
-
-    // Optional payload
-    properties,
   };
+
+  const referrer = readReferrer();
+  if (referrer !== '') {
+    event.referrer = referrer;
+  }
+
+  const { utmSource, utmMedium, utmCampaign } = readUtmParameters();
+  if (utmSource !== undefined) event.utm_source = utmSource;
+  if (utmMedium !== undefined) event.utm_medium = utmMedium;
+  if (utmCampaign !== undefined) event.utm_campaign = utmCampaign;
+
+  if (properties !== undefined && Object.keys(properties).length > 0) {
+    event.properties = properties;
+  }
+
+  return event;
 }
 
 function generateEventId(): string {
@@ -128,26 +111,20 @@ function readReferrer(): string {
   }
 }
 
-function readScreenWidth(): number {
+function readUtmParameters(): {
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+} {
   try {
-    return window.screen.width;
-  } catch {
-    return 0;
-  }
-}
+    const params = new URL(window.location.href).searchParams;
 
-function readViewportWidth(): number {
-  try {
-    return window.innerWidth;
+    return {
+      utmSource: params.get('utm_source') ?? undefined,
+      utmMedium: params.get('utm_medium') ?? undefined,
+      utmCampaign: params.get('utm_campaign') ?? undefined,
+    };
   } catch {
-    return 0;
-  }
-}
-
-function readLanguage(): string {
-  try {
-    return navigator.language ?? '';
-  } catch {
-    return '';
+    return {};
   }
 }

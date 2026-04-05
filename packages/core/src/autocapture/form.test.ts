@@ -33,6 +33,7 @@ describe('Form tracking', () => {
     expect(mockTrack).toHaveBeenCalledWith(
       'form_submit',
       expect.objectContaining({
+        eventName: 'form_submit',
         formId: 'newsletter',
         formAction: expect.stringContaining('/subscribe'),
       })

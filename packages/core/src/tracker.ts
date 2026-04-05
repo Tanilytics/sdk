@@ -1,4 +1,4 @@
-import type { TrackingEvent, EventType, EventProperties } from './types';
+import type { EventType, EventProperties } from './types';
 import type { AnalyticsConfig } from './config/types';
 import { validateAndMergeConfig } from './config';
 import type { ResolvedConfig } from './config/types';
@@ -292,9 +292,8 @@ export class AnalyticsTracker {
     const sessionId = this.session.getSessionId();
 
     // Build the complete event
-    const event: TrackingEvent = buildEvent(
+    const event = buildEvent(
       eventType,
-      sessionId,
       Object.keys(sanitised).length > 0 ? sanitised : undefined
     );
 
@@ -303,7 +302,7 @@ export class AnalyticsTracker {
     }
 
     // Enqueue — the queue handles batching, timing, and sending
-    this.queue.enqueue(event);
+    this.queue.enqueue(event, sessionId);
   }
 
   /**

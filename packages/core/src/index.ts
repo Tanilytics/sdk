@@ -29,6 +29,9 @@ export type {
   TrackingEvent,
   EventType,
   EventProperties,
+  IngestionEvent,
+  IngestionPayload,
+  SessionContext,
   MediaAdapterInterface,
 } from './types';
 export type { AnalyticsConfig } from './config/types';

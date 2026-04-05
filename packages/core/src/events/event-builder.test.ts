@@ -4,7 +4,6 @@ vi.mock('../config/device', () => ({
   getDeviceType: vi.fn(() => 'desktop'),
 }));
 
-import { SDK_VERSION } from '../version';
 import {
   __resetEventBuilderStateForTests,
   buildEvent,
@@ -13,9 +12,10 @@ import {
 
 function stubBrowserGlobals() {
   vi.stubGlobal('window', {
-    location: { href: 'https://example.com/path?a=1' },
-    screen: { width: 1920 },
-    innerWidth: 1280,
+    location: {
+      href: 'https://example.com/path?a=1&utm_source=news&utm_medium=email&utm_campaign=spring',
+    },
+    screen: { width: 1920, height: 1080 },
   });
 
   vi.stubGlobal('document', {
@@ -55,24 +55,20 @@ describe('events/event-builder', () => {
 
     configureSiteToken('site_token_123');
 
-    const event = buildEvent('custom', 'session-abc', {
+    const event = buildEvent('custom', {
       plan: 'pro',
       trial: false,
     });
 
     expect(event).toEqual({
-      eventId: 'event-uuid-1',
-      siteToken: 'site_token_123',
-      eventType: 'custom',
-      clientTimestamp: 1_700_000_000_000,
+      event_id: 'event-uuid-1',
+      event_type: 'custom',
+      timestamp: 1_700_000_000_000,
       url: 'https://example.com/path?a=1',
       referrer: 'https://ref.example.com/',
-      sessionId: 'session-abc',
-      deviceType: 'desktop',
-      screenWidth: 1920,
-      viewportWidth: 1280,
-      language: 'en-US',
-      sdkVersion: SDK_VERSION,
+      utm_source: 'news',
+      utm_medium: 'email',
+      utm_campaign: 'spring',
       properties: { plan: 'pro', trial: false },
     });
   });
@@ -88,10 +84,10 @@ describe('events/event-builder', () => {
     });
 
     configureSiteToken('site_token_123');
-    const event = buildEvent('page_view', 'session-abc');
+    const event = buildEvent('page_view');
 
     expect(getRandomValues).toHaveBeenCalledTimes(1);
-    expect(event.eventId).toMatch(
+    expect(event.event_id).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
     );
   });
@@ -101,9 +97,9 @@ describe('events/event-builder', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.1);
 
     configureSiteToken('site_token_123');
-    const event = buildEvent('page_view', 'session-abc');
+    const event = buildEvent('page_view');
 
-    expect(event.eventId).toMatch(
+    expect(event.event_id).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
     );
   });
@@ -117,12 +113,9 @@ describe('events/event-builder', () => {
     });
 
     configureSiteToken('site_token_123');
-    const event = buildEvent('custom', 'session-abc');
+    const event = buildEvent('custom');
 
     expect(event.url).toBe('');
-    expect(event.referrer).toBe('');
-    expect(event.screenWidth).toBe(0);
-    expect(event.viewportWidth).toBe(0);
-    expect(event.language).toBe('');
+    expect(event.referrer).toBeUndefined();
   });
 });

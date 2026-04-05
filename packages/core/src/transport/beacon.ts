@@ -1,4 +1,5 @@
-import type { TrackingEvent } from '../types';
+import type { IngestionEvent } from '../types';
+import { buildPayload } from './payload';
 
 export interface BeaconResult {
   sent: boolean;
@@ -6,9 +7,10 @@ export interface BeaconResult {
 }
 
 export function sendBeacon(
-  events: TrackingEvent[],
+  events: IngestionEvent[],
   endpoint: string,
-  siteToken: string
+  siteToken: string,
+  visitorId: string
 ): BeaconResult {
   // Beacon is not available in all environments
   if (
@@ -23,7 +25,7 @@ export function sendBeacon(
   }
 
   try {
-    const payload = JSON.stringify({ events });
+    const payload = JSON.stringify(buildPayload(events, visitorId, siteToken));
 
     const blob = new Blob([payload], { type: 'application/json' });
 

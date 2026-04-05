@@ -1,4 +1,4 @@
-import type { TrackingEvent } from '../types';
+import type { IngestionEvent } from '../types';
 import { sendBatch } from './sender';
 import { sendBeacon } from './beacon';
 import type { SenderConfig } from './sender';
@@ -10,8 +10,13 @@ export interface QueueConfig {
   senderConfig: SenderConfig;
 }
 
+interface QueuedEvent {
+  visitorId: string;
+  event: IngestionEvent;
+}
+
 export class EventQueue {
-  private events: TrackingEvent[] = [];
+  private events: QueuedEvent[] = [];
   private timer: ReturnType<typeof setInterval> | null = null;
   private isFlushing = false;
   private readonly config: QueueConfig;
@@ -29,12 +34,12 @@ export class EventQueue {
     this.attachUnloadListeners();
   }
 
-  public enqueue(event: TrackingEvent): void {
+  public enqueue(event: IngestionEvent, visitorId: string): void {
     if (this.events.length >= this.config.maxQueueSize) {
       this.events.shift();
     }
 
-    this.events.push(event);
+    this.events.push({ visitorId, event });
 
     if (this.events.length >= this.config.maxBatchSize) {
       void this.flush();
@@ -47,12 +52,16 @@ export class EventQueue {
 
     this.isFlushing = true;
 
-    let inFlightBatch: TrackingEvent[] | null = null;
+    let inFlightBatch: QueuedEvent[] | null = null;
 
     try {
       while (this.events.length > 0) {
-        inFlightBatch = this.events.splice(0, this.config.maxBatchSize);
-        const result = await sendBatch(inFlightBatch, this.config.senderConfig);
+        inFlightBatch = this.takeNextBatch();
+        const result = await sendBatch(
+          inFlightBatch.map((entry) => entry.event),
+          this.config.senderConfig,
+          inFlightBatch[0].visitorId
+        );
 
         if (!result.ok) {
           this.events.unshift(...inFlightBatch);
@@ -113,10 +122,13 @@ export class EventQueue {
   private flushViaBeacon(): void {
     if (this.events.length === 0) return;
 
+    const inFlightBatch = this.takeNextBatch();
+
     const result = sendBeacon(
-      this.events,
+      inFlightBatch.map((entry) => entry.event),
       this.config.senderConfig.endpoint,
-      this.config.senderConfig.siteToken
+      this.config.senderConfig.siteToken,
+      inFlightBatch[0].visitorId
     );
 
     if (result.sent) {
@@ -145,5 +157,26 @@ export class EventQueue {
 
     document.removeEventListener('visibilitychange', this.onVisibilityChange);
     window.removeEventListener('pagehide', this.onPageHide);
+  }
+
+  private takeNextBatch(): QueuedEvent[] {
+    const batch: QueuedEvent[] = [];
+    const firstVisitorId = this.events[0]?.visitorId;
+
+    if (firstVisitorId === undefined) {
+      return batch;
+    }
+
+    while (
+      batch.length < this.config.maxBatchSize &&
+      this.events.length > 0 &&
+      this.events[0].visitorId === firstVisitorId
+    ) {
+      const next = this.events.shift();
+      if (next === undefined) break;
+      batch.push(next);
+    }
+
+    return batch;
   }
 }
