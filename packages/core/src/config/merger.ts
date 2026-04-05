@@ -1,10 +1,10 @@
 import type { AnalyticsConfig, ResolvedConfig } from './types';
-import { DEFAULT_CONFIG } from './defaults';
+import { DEFAULT_CONFIG, resolveDefaultEndpoint } from './defaults';
 
 export function merge(config: AnalyticsConfig): ResolvedConfig {
   const resolved: ResolvedConfig = {
     siteToken: config.siteToken,
-    endpoint: config.endpoint ?? DEFAULT_CONFIG.endpoint,
+    endpoint: resolveDefaultEndpoint(config.endpoint),
     flushInterval: config.flushInterval ?? DEFAULT_CONFIG.flushInterval,
     maxBatchSize: config.maxBatchSize ?? DEFAULT_CONFIG.maxBatchSize,
     maxQueueSize: config.maxQueueSize ?? DEFAULT_CONFIG.maxQueueSize,
