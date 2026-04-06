@@ -58,7 +58,6 @@ async function attemptSend(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-site-token': config.siteToken,
       },
       body: JSON.stringify(payload),
       // keepalive allows the request to outlive the page
