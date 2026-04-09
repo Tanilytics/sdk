@@ -1,204 +1,220 @@
-# Nx TypeScript Repository
+# Tanilytics Analytics SDK
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+Tanilytics Analytics SDK is a TypeScript monorepo for a browser analytics client and related media adapter packages.
 
-✨ A repository showcasing key [Nx](https://nx.dev) features for TypeScript monorepos ✨
-🚀 If you haven't connected to Nx Cloud yet, [complete your setup here](https://cloud.nx.app/setup/connect-workspace/guide). Get faster builds with remote caching, distributed task execution, and self-healing CI. [See how your workspace can benefit](#nx-cloud).
+## Packages
 
-## 📦 Project Overview
+- `@analytics-sdk/core`: browser analytics SDK
+- `@analytics-sdk/adapter-videojs`: Video.js adapter package scaffold
+- `@analytics-sdk/adapter-hlsjs`: hls.js adapter package scaffold
+- `@analytics-sdk/adapter-youtube`: YouTube adapter package scaffold
 
-This repository demonstrates a production-ready TypeScript monorepo with:
+Today, the core package contains the real SDK implementation. The media adapter packages are present in the workspace, but are still minimal scaffolds.
 
-- **3 Publishable Packages** - Ready for NPM publishing
+## Core SDK Features
 
-  - `@org/strings` - String manipulation utilities
-  - `@org/async` - Async utility functions with retry logic
-  - `@org/colors` - Color conversion and manipulation utilities
+- one-time SDK initialization with a module-level singleton
+- manual event tracking with typed event names
+- automatic page view tracking, including SPA navigation
+- autocapture for clicks, form submissions, scroll depth, and time on page
+- batching, queued delivery, retry handling, and `sendBeacon` on unload
+- session management with session persistence in browser storage
+- privacy controls for opt-out, consent, and Do Not Track support
+- strict TypeScript public API
 
-- **1 Internal Library**
-  - `@org/utils` - Shared utilities (private, not published)
+## Installation
 
-## 🚀 Quick Start
-
-```bash
-# Clone the repository
-git clone <your-fork-url>
-cd typescript-template
-
-# Install dependencies
-npm install
-
-# Build all packages
-npx nx run-many -t build
-
-# Run tests
-npx nx run-many -t test
-
-# Lint all projects
-npx nx run-many -t lint
-
-# Run everything in parallel
-npx nx run-many -t lint test build --parallel=3
-
-# Visualize the project graph
-npx nx graph
-```
-
-## ⭐ Featured Nx Capabilities
-
-This repository showcases several powerful Nx features:
-
-### 1. 🔒 Module Boundaries
-
-Enforces architectural constraints using tags. Each package has specific dependencies it can use:
-
-- `scope:shared` (utils) - Can be used by all packages
-- `scope:strings` - Can only depend on shared utilities
-- `scope:async` - Can only depend on shared utilities
-- `scope:colors` - Can only depend on shared utilities
-
-**Try it out:**
+Package consumers install from npm:
 
 ```bash
-# See the current project graph and boundaries
-npx nx graph
-
-# View a specific project's details
-npx nx show project strings --web
+npm install @analytics-sdk/core
 ```
 
-[Learn more about module boundaries →](https://nx.dev/features/enforce-module-boundaries)
-
-### 2. 🛠️ Custom Run Commands
-
-Packages can define custom commands beyond standard build/test/lint:
+For local repository development:
 
 ```bash
-# Run the custom build-base command for strings package
-npx nx run strings:build-base
-
-# See all available targets for a project
-npx nx show project strings
+bun install
 ```
 
-[Learn more about custom run commands →](https://nx.dev/concepts/executors-and-configurations)
+## Quick Start
 
-### 3. 🔧 Self-Healing CI
+```ts
+import { EventTypes, init, track } from '@analytics-sdk/core';
 
-The CI pipeline includes `nx fix-ci` which automatically identifies and suggests fixes for common issues. To test it, you can make a change to `async-retry.spec.ts` so that it fails, and create a PR.
+init({
+  siteToken: 'sk_live_abc12345',
+  endpoint: 'https://ingest.example.com/api/v1/events',
+});
+
+track(EventTypes.CUSTOM, {
+  action: 'newsletter_signup',
+  plan: 'pro',
+});
+```
+
+You can also provide the ingestion endpoint through the `INGESTION_URL` environment variable instead of passing `endpoint` to `init()`.
+
+## Public API
+
+The current public API for `@analytics-sdk/core` is exported from `packages/core/src/index.ts`:
+
+- `init(config)`
+- `track(eventType, properties?)`
+- `flush()`
+- `destroy()`
+- `optOut()`
+- `optIn()`
+- `isOptedOut()`
+- `giveConsent()`
+- `withdrawConsent()`
+- `EventTypes`
+- `SDK_VERSION`
+- exported types including `AnalyticsConfig`, `EventType`, `EventProperties`, and `IngestionEvent`
+
+## Supported Event Types
+
+Use `EventTypes` rather than raw strings:
+
+- `PAGE_VIEW`
+- `PAGE_LEAVE`
+- `CLICK`
+- `FORM_SUBMIT`
+- `SCROLL`
+- `MEDIA_PLAY`
+- `MEDIA_PAUSE`
+- `MEDIA_SEEK`
+- `MEDIA_PROGRESS`
+- `MEDIA_BUFFER`
+- `MEDIA_COMPLETE`
+- `CUSTOM`
+
+## Configuration
+
+`init()` accepts this shape:
+
+```ts
+interface AnalyticsConfig {
+  siteToken: string;
+  endpoint?: string;
+  flushInterval?: number;
+  maxBatchSize?: number;
+  maxQueueSize?: number;
+  debug?: boolean;
+  requireConsent?: boolean;
+  respectDoNotTrack?: boolean;
+  autocapture?: {
+    pageViews?: boolean;
+    scrollDepth?: boolean;
+    timeOnPage?: boolean;
+    clicks?: boolean;
+    formSubmissions?: boolean;
+  };
+}
+```
+
+Current defaults:
+
+- `flushInterval: 3000`
+- `maxBatchSize: 50`
+- `maxQueueSize: 1000`
+- `debug: false`
+- `requireConsent: false`
+- `respectDoNotTrack: true`
+- autocapture enabled for page views, scroll depth, time on page, clicks, and form submissions
+
+Validation rules currently enforced by the SDK include:
+
+- `siteToken` is required and must be between 8 and 64 characters after trimming
+- `endpoint` must be a valid URL
+- non-HTTPS endpoints are only allowed for localhost-style development hosts
+- `flushInterval` must be an integer `>= 500`
+- `maxBatchSize` must be an integer between `1` and `200`
+- `maxQueueSize` must be an integer between `1` and `10000`
+
+## Privacy Controls
+
+The SDK exposes helpers for common privacy flows:
+
+```ts
+import {
+  giveConsent,
+  isOptedOut,
+  optIn,
+  optOut,
+  withdrawConsent,
+} from '@analytics-sdk/core';
+
+optOut();
+optIn();
+giveConsent();
+withdrawConsent();
+
+console.log(isOptedOut());
+```
+
+Current privacy behavior:
+
+- opt-out blocks all tracking
+- Do Not Track is respected by default
+- consent is optional by default
+- if `requireConsent` is enabled, events are blocked until consent is granted
+
+## Development
+
+Run commands from the repository root.
 
 ```bash
-# Run tests and see the failure
-npx nx test async
+# install dependencies
+bun install
 
-# In CI, this command provides automated fixes
-npx nx fix-ci
+# build all packages
+bunx nx run-many -t build
+
+# test all packages
+bunx nx run-many -t test
+
+# lint all packages
+bunx nx run-many -t lint
+
+# typecheck all packages
+bunx nx run-many -t typecheck
+
+# format and size checks
+bun run format:check
+bun run size:check
 ```
 
-[Learn more about self-healing CI →](https://nx.dev/ci/features/self-healing-ci)
-
-### 4. 📦 Package Publishing
-
-Manage releases and publishing with Nx Release:
+Useful per-project commands:
 
 ```bash
-# Dry run to see what would be published
-npx nx release --dry-run
+# core
+bunx nx build @analytics-sdk/core
+bunx nx test @analytics-sdk/core
+bunx nx lint @analytics-sdk/core
+bunx nx typecheck @analytics-sdk/core
 
-# Version and release packages
-npx nx release
+# single core test file
+bunx nx test @analytics-sdk/core -- --run src/config/validator.test.ts
 
-# Publish only specific packages
-npx nx release publish --projects=strings,colors
+# single named core test
+bunx nx test @analytics-sdk/core -- --run src/config/validator.test.ts -t "throws when siteToken is missing"
+
+# adapter example
+bunx nx test @analytics-sdk/adapter-videojs -- --run src/lib/videojs.spec.ts
 ```
 
-[Learn more about Nx Release →](https://nx.dev/features/manage-releases)
+## Repository Structure
 
-## 📁 Project Structure
-
+```text
+packages/
+  core/
+  media-adapters/
+    videojs/
+    hlsjs/
+    youtube/
+nx.json
+tsconfig.json
+tsconfig.base.json
+eslint.config.mjs
+vitest.workspace.ts
 ```
-├── packages/
-│   ├── strings/     [scope:strings] - String utilities (publishable)
-│   ├── async/       [scope:async]   - Async utilities (publishable)
-│   ├── colors/      [scope:colors]  - Color utilities (publishable)
-│   └── utils/       [scope:shared]  - Shared utilities (private)
-├── nx.json          - Nx configuration
-├── tsconfig.json    - TypeScript configuration
-└── eslint.config.mjs - ESLint with module boundary rules
-```
-
-## 🏷️ Understanding Tags
-
-This repository uses tags to enforce module boundaries:
-
-| Package        | Tag             | Can Import From        |
-| -------------- | --------------- | ---------------------- |
-| `@org/utils`   | `scope:shared`  | Nothing (base library) |
-| `@org/strings` | `scope:strings` | `scope:shared`         |
-| `@org/async`   | `scope:async`   | `scope:shared`         |
-| `@org/colors`  | `scope:colors`  | `scope:shared`         |
-
-The ESLint configuration enforces these boundaries, preventing circular dependencies and maintaining clean architecture.
-
-## 🧪 Testing Module Boundaries
-
-To see module boundary enforcement in action:
-
-1. Try importing `@org/colors` into `@org/strings`
-2. Run `npx nx lint strings`
-3. You'll see an error about violating module boundaries
-
-## 📚 Useful Commands
-
-```bash
-# Project exploration
-npx nx graph                                    # Interactive dependency graph
-npx nx list                                     # List installed plugins
-npx nx show project strings --web              # View project details
-
-# Development
-npx nx build strings                           # Build a specific package
-npx nx test async                              # Test a specific package
-npx nx lint colors                             # Lint a specific package
-
-# Running multiple tasks
-npx nx run-many -t build                       # Build all projects
-npx nx run-many -t test --parallel=3          # Test in parallel
-npx nx run-many -t lint test build            # Run multiple targets
-
-# Affected commands (great for CI)
-npx nx affected -t build                       # Build only affected projects
-npx nx affected -t test                        # Test only affected projects
-
-# Release management
-npx nx release --dry-run                       # Preview release changes
-npx nx release                                 # Create a new release
-```
-
-## Nx Cloud
-
-Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
-
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## 🔗 Learn More
-
-- [Nx Documentation](https://nx.dev)
-- [Module Boundaries](https://nx.dev/features/enforce-module-boundaries)
-- [Custom Commands](https://nx.dev/concepts/executors-and-configurations)
-- [Self-Healing CI](https://nx.dev/ci/features/self-healing-ci)
-- [Releasing Packages](https://nx.dev/features/manage-releases)
-- [Nx Cloud](https://nx.dev/ci/intro/why-nx-cloud)
-
-## 💬 Community
-
-Join the Nx community:
-
-- [Discord](https://go.nx.dev/community)
-- [X (Twitter)](https://twitter.com/nxdevtools)
-- [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [YouTube](https://www.youtube.com/@nxdevtools)
-- [Blog](https://nx.dev/blog)
