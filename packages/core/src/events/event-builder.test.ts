@@ -14,7 +14,7 @@ import { EventTypes } from './event-types';
 function stubBrowserGlobals() {
   vi.stubGlobal('window', {
     location: {
-      href: 'https://example.com/path?a=1&utm_source=news&utm_medium=email&utm_campaign=spring',
+      href: 'https://example.com/path?a=1&utm_source=news&utm_medium=email&utm_campaign=spring#cta',
     },
     screen: { width: 1920, height: 1080 },
   });
@@ -65,7 +65,7 @@ describe('events/event-builder', () => {
       event_id: 'event-uuid-1',
       event_type: EventTypes.CLICK,
       timestamp: 1_700_000_000_000,
-      url: 'https://example.com/path?a=1',
+      url: 'https://example.com/path',
       referrer: 'https://ref.example.com/',
       utm_source: 'news',
       utm_medium: 'email',

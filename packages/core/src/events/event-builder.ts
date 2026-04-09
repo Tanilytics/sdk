@@ -97,7 +97,13 @@ function generateEventId(): string {
 
 function readUrl(): string {
   try {
-    return window.location.href;
+    const url = new URL(window.location.href);
+
+    // clean up the url to return only canonical URL string
+    url.search = '';
+    url.hash = '';
+
+    return url.toString();
   } catch {
     return '';
   }
