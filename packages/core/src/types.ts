@@ -13,8 +13,7 @@ export type EventType =
   | 'media_seek'
   | 'media_progress'
   | 'media_buffer'
-  | 'media_complete'
-  | 'custom';
+  | 'media_complete';
 
 /**
  * Arbitrary properties attached to an event by the caller.

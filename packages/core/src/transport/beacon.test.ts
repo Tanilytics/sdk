@@ -2,11 +2,12 @@ import type { TrackingEvent } from '../types';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { sendBeacon } from './beacon';
+import { EventTypes } from '../events';
 
 function makeEvent(id: string): TrackingEvent {
   return {
     event_id: id,
-    event_type: 'custom',
+    event_type: EventTypes.CLICK,
     timestamp: Date.now(),
     url: 'https://example.com',
   };

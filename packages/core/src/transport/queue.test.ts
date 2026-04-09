@@ -11,11 +11,12 @@ vi.mock('./beacon', () => ({
 
 import { EventQueue } from './queue';
 import { sendBatch } from './sender';
+import { EventTypes } from '../events';
 
 function makeEvent(id: string): TrackingEvent {
   return {
     event_id: id,
-    event_type: 'custom',
+    event_type: EventTypes.CLICK,
     timestamp: Date.now(),
     url: 'https://example.com',
   };

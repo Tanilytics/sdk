@@ -15,7 +15,6 @@ describe('events/event-types', () => {
     expect(EventTypes.MEDIA_PROGRESS).toBe('media_progress');
     expect(EventTypes.MEDIA_BUFFER).toBe('media_buffer');
     expect(EventTypes.MEDIA_COMPLETE).toBe('media_complete');
-    expect(EventTypes.CUSTOM).toBe('custom');
   });
 
   it('has unique values to prevent collisions', () => {
