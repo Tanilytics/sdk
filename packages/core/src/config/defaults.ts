@@ -5,8 +5,8 @@ export const INGESTION_URL_ENV_VAR = 'INGESTION_URL';
 type BaseDefaultConfig = Omit<ResolvedConfig, 'siteToken' | 'endpoint'>;
 
 export const DEFAULT_CONFIG: BaseDefaultConfig = {
-  flushInterval: 3000,
-  maxBatchSize: 50,
+  flushInterval: 10000,
+  maxBatchSize: 100,
   maxQueueSize: 1000,
   debug: false,
   requireConsent: false,
