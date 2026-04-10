@@ -32,7 +32,7 @@ jobs:
     steps:
       # ── Checkout ─────────────────────────────────────────────────────────────
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           # Use a token that can push back to the repo
@@ -48,10 +48,11 @@ jobs:
 
       # ── Node setup ───────────────────────────────────────────────────────────
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
+          cache-dependency-path: package-lock.json
           # Configures npm to publish to the public registry
           # with the auth token from secrets
           registry-url: 'https://registry.npmjs.org'
