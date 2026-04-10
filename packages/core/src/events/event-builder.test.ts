@@ -9,11 +9,12 @@ import {
   buildEvent,
   configureSiteToken,
 } from './event-builder';
+import { EventTypes } from './event-types';
 
 function stubBrowserGlobals() {
   vi.stubGlobal('window', {
     location: {
-      href: 'https://example.com/path?a=1&utm_source=news&utm_medium=email&utm_campaign=spring',
+      href: 'https://example.com/path?a=1&utm_source=news&utm_medium=email&utm_campaign=spring#cta',
     },
     screen: { width: 1920, height: 1080 },
   });
@@ -42,7 +43,7 @@ describe('events/event-builder', () => {
   });
 
   it('throws if site token is not configured', () => {
-    expect(() => buildEvent('custom', 'session-1')).toThrow(
+    expect(() => buildEvent(EventTypes.CLICK)).toThrow(
       /Site token is not configured/
     );
   });
@@ -55,16 +56,16 @@ describe('events/event-builder', () => {
 
     configureSiteToken('site_token_123');
 
-    const event = buildEvent('custom', {
+    const event = buildEvent(EventTypes.CLICK, {
       plan: 'pro',
       trial: false,
     });
 
     expect(event).toEqual({
       event_id: 'event-uuid-1',
-      event_type: 'custom',
+      event_type: EventTypes.CLICK,
       timestamp: 1_700_000_000_000,
-      url: 'https://example.com/path?a=1',
+      url: 'https://example.com/path',
       referrer: 'https://ref.example.com/',
       utm_source: 'news',
       utm_medium: 'email',
@@ -113,7 +114,7 @@ describe('events/event-builder', () => {
     });
 
     configureSiteToken('site_token_123');
-    const event = buildEvent('custom');
+    const event = buildEvent(EventTypes.CLICK);
 
     expect(event.url).toBe('');
     expect(event.referrer).toBeUndefined();

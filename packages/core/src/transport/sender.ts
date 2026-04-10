@@ -1,4 +1,4 @@
-import type { IngestionEvent } from '../types';
+import type { IngestionEvent, IngestionPayload } from '../types';
 import { buildPayload } from './payload';
 import { withRetry } from './retry';
 
@@ -13,6 +13,11 @@ export interface SendResult {
   retryable: boolean;
   status?: number;
   reason?: string;
+}
+
+interface RequestBody {
+  headers: Record<string, string>;
+  body: string | ArrayBuffer;
 }
 
 export async function sendBatch(
@@ -53,14 +58,12 @@ async function attemptSend(
 
   try {
     const payload = buildPayload(events, visitorId, config.siteToken);
+    const requestBody = await buildRequestBody(payload);
 
     response = await fetch(config.endpoint, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-site-token': config.siteToken,
-      },
-      body: JSON.stringify(payload),
+      headers: requestBody.headers,
+      body: requestBody.body,
       // keepalive allows the request to outlive the page
       // Important for events sent just before navigation
       keepalive: true,
@@ -76,6 +79,46 @@ async function attemptSend(
   }
 
   return classifyResponse(response);
+}
+
+async function buildRequestBody(
+  payload: IngestionPayload
+): Promise<RequestBody> {
+  const json = JSON.stringify(payload);
+  const compressedBody = await gzipJson(json);
+
+  if (compressedBody === null) {
+    return {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: json,
+    };
+  }
+
+  return {
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Encoding': 'gzip',
+    },
+    body: compressedBody,
+  };
+}
+
+async function gzipJson(value: string): Promise<ArrayBuffer | null> {
+  if (typeof CompressionStream !== 'function') {
+    return null;
+  }
+
+  try {
+    const compressedStream = new Blob([value])
+      .stream()
+      .pipeThrough(new CompressionStream('gzip'));
+
+    return await new Response(compressedStream).arrayBuffer();
+  } catch {
+    return null;
+  }
 }
 
 function classifyResponse(response: Response): SendResult {

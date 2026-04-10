@@ -29,10 +29,7 @@ export function sendBeacon(
 
     const blob = new Blob([payload], { type: 'application/json' });
 
-    const accepted = navigator.sendBeacon(
-      buildBeaconUrl(endpoint, siteToken),
-      blob
-    );
+    const accepted = navigator.sendBeacon(buildBeaconUrl(endpoint), blob);
 
     if (!accepted) {
       return {
@@ -50,13 +47,7 @@ export function sendBeacon(
   }
 }
 
-function buildBeaconUrl(endpoint: string, siteToken: string): string {
-  try {
-    const url = new URL(endpoint);
-    url.searchParams.set('st', siteToken);
-    return url.toString();
-  } catch {
-    const separator = endpoint.includes('?') ? '&' : '?';
-    return `${endpoint}${separator}st=${encodeURIComponent(siteToken)}`;
-  }
+function buildBeaconUrl(endpoint: string): string {
+  const url = new URL(endpoint);
+  return url.toString();
 }

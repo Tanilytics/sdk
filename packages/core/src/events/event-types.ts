@@ -22,5 +22,4 @@ export const EventTypes = {
   MEDIA_PROGRESS: 'media_progress' as EventType,
   MEDIA_BUFFER: 'media_buffer' as EventType,
   MEDIA_COMPLETE: 'media_complete' as EventType,
-  CUSTOM: 'custom' as EventType,
 } as const;
