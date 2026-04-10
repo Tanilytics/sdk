@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import type { EventProperties } from '../types';
 import { validateProperties } from './event-validator';
 
 describe('events/event-validator', () => {
