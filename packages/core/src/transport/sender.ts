@@ -23,7 +23,7 @@ interface RequestBody {
 export async function sendBatch(
   events: IngestionEvent[],
   config: SenderConfig,
-  visitorId: string
+  visitorId: string,
 ): Promise<SendResult> {
   const result = await withRetry(() => attemptSend(events, config, visitorId), {
     maxAttempts: 3,
@@ -33,7 +33,7 @@ export async function sendBatch(
   if (result.success) {
     if (config.debug) {
       console.info(
-        `[AnalyticsSDK] Sent ${events.length} event(s) successfully.`
+        `[AnalyticsSDK] Sent ${events.length} event(s) successfully.`,
       );
     }
     return { ok: true, retryable: false };
@@ -42,7 +42,7 @@ export async function sendBatch(
   if (config.debug) {
     console.warn(
       `[AnalyticsSDK] Failed to send ${events.length} event(s) after ` +
-        `${result.attempts} attempt(s). ${result.finalError ?? ''}`
+        `${result.attempts} attempt(s). ${result.finalError ?? ''}`,
     );
   }
 
@@ -52,7 +52,7 @@ export async function sendBatch(
 async function attemptSend(
   events: IngestionEvent[],
   config: SenderConfig,
-  visitorId: string
+  visitorId: string,
 ): Promise<SendResult> {
   let response: Response;
 
@@ -82,7 +82,7 @@ async function attemptSend(
 }
 
 async function buildRequestBody(
-  payload: IngestionPayload
+  payload: IngestionPayload,
 ): Promise<RequestBody> {
   const json = JSON.stringify(payload);
   const compressedBody = await gzipJson(json);

@@ -3,7 +3,7 @@ import type { ResolvedConfig } from '../config/types';
 
 type TrackFn = (
   eventType: string,
-  properties?: Record<string, string | number | boolean | null>
+  properties?: Record<string, string | number | boolean | null>,
 ) => void;
 
 interface PageViewTrackerOptions {
@@ -48,7 +48,7 @@ function patchHistory(): void {
   history.pushState = function (
     state: unknown,
     unused: string,
-    url?: string | URL | null
+    url?: string | URL | null,
   ): void {
     const originalPushState = _originalPushState;
     if (originalPushState === null) return;
@@ -59,7 +59,7 @@ function patchHistory(): void {
   history.replaceState = function (
     state: unknown,
     unused: string,
-    url?: string | URL | null
+    url?: string | URL | null,
   ): void {
     const originalReplaceState = _originalReplaceState;
     if (originalReplaceState === null) return;

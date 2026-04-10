@@ -19,7 +19,7 @@ describe('validateAndMergeConfig', () => {
     expect(() =>
       validateAndMergeConfig({
         siteToken: 'short',
-      })
+      }),
     ).toThrow(/too short/);
   });
 
@@ -35,7 +35,7 @@ describe('validateAndMergeConfig', () => {
     expect(resolved.endpoint).toBe('https://env.example.com/events');
     expect(resolved.autocapture.clicks).toBe(false);
     expect(resolved.autocapture.pageViews).toBe(
-      DEFAULT_CONFIG.autocapture.pageViews
+      DEFAULT_CONFIG.autocapture.pageViews,
     );
 
     expect(Object.isFrozen(resolved)).toBe(true);
@@ -48,7 +48,7 @@ describe('validateAndMergeConfig', () => {
     expect(() =>
       validateAndMergeConfig({
         siteToken: 'sk_live_abc12345',
-      })
+      }),
     ).toThrow(/INGESTION_URL/);
   });
 });

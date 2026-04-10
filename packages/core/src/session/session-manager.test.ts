@@ -59,7 +59,7 @@ describe('session/SessionManager', () => {
         sessionId: 'existing-session',
         startedAt: 1_000,
         lastActivityAt: 5_000,
-      })
+      }),
     );
 
     vi.spyOn(Date, 'now').mockReturnValue(5_001);
@@ -81,7 +81,7 @@ describe('session/SessionManager', () => {
         sessionId: 'expired-session',
         startedAt: 1_000,
         lastActivityAt: 1_000,
-      })
+      }),
     );
 
     vi.spyOn(Date, 'now').mockReturnValue(1_000 + SESSION_TIMEOUT_MS + 1);

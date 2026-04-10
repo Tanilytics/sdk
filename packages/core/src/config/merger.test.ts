@@ -55,14 +55,14 @@ describe('merge', () => {
 
     expect(result.autocapture.pageViews).toBe(false);
     expect(result.autocapture.scrollDepth).toBe(
-      DEFAULT_CONFIG.autocapture.scrollDepth
+      DEFAULT_CONFIG.autocapture.scrollDepth,
     );
     expect(result.autocapture.timeOnPage).toBe(
-      DEFAULT_CONFIG.autocapture.timeOnPage
+      DEFAULT_CONFIG.autocapture.timeOnPage,
     );
     expect(result.autocapture.clicks).toBe(DEFAULT_CONFIG.autocapture.clicks);
     expect(result.autocapture.formSubmissions).toBe(
-      DEFAULT_CONFIG.autocapture.formSubmissions
+      DEFAULT_CONFIG.autocapture.formSubmissions,
     );
   });
 
@@ -70,7 +70,7 @@ describe('merge', () => {
     delete process.env[INGESTION_URL_ENV_VAR];
 
     expect(() => merge({ siteToken: 'sk_live_abc12345' })).toThrow(
-      /INGESTION_URL/
+      /INGESTION_URL/,
     );
   });
 

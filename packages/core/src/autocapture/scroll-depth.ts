@@ -2,7 +2,7 @@ import { EventTypes } from '../events/event-types';
 
 type TrackFn = (
   eventType: string,
-  properties?: Record<string, string | number | boolean | null>
+  properties?: Record<string, string | number | boolean | null>,
 ) => void;
 
 interface ScrollDepthOptions {
@@ -148,6 +148,6 @@ function getDocumentHeight(): number {
     document.body.offsetHeight,
     document.documentElement.clientHeight,
     document.documentElement.scrollHeight,
-    document.documentElement.offsetHeight
+    document.documentElement.offsetHeight,
   );
 }

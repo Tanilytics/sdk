@@ -10,7 +10,7 @@ export type { AnalyticsConfig, ResolvedConfig };
  * Merges second — returns complete resolved config.
  */
 export function validateAndMergeConfig(
-  config: AnalyticsConfig
+  config: AnalyticsConfig,
 ): ResolvedConfig {
   validate(config);
   return merge(config);

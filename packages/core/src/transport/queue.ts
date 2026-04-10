@@ -60,7 +60,7 @@ export class EventQueue {
         const result = await sendBatch(
           inFlightBatch.map((entry) => entry.event),
           this.config.senderConfig,
-          inFlightBatch[0].visitorId
+          inFlightBatch[0].visitorId,
         );
 
         if (!result.ok) {
@@ -128,7 +128,7 @@ export class EventQueue {
       inFlightBatch.map((entry) => entry.event),
       this.config.senderConfig.endpoint,
       this.config.senderConfig.siteToken,
-      inFlightBatch[0].visitorId
+      inFlightBatch[0].visitorId,
     );
 
     if (result.sent) {

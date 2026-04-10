@@ -42,7 +42,7 @@ describe('DEFAULT_CONFIG', () => {
     delete process.env[INGESTION_URL_ENV_VAR];
 
     expect(resolveDefaultEndpoint('https://example.com/events')).toBe(
-      'https://example.com/events'
+      'https://example.com/events',
     );
   });
 

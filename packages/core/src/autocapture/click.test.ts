@@ -21,7 +21,7 @@ describe('Click tracking', () => {
 
     expect(mockTrack).toHaveBeenCalledWith(
       'click',
-      expect.objectContaining({ tag: 'a', text: 'About' })
+      expect.objectContaining({ tag: 'a', text: 'About' }),
     );
   });
 
@@ -31,7 +31,7 @@ describe('Click tracking', () => {
 
     expect(mockTrack).toHaveBeenCalledWith(
       'click',
-      expect.objectContaining({ tag: 'button', text: 'Subscribe' })
+      expect.objectContaining({ tag: 'button', text: 'Subscribe' }),
     );
   });
 
@@ -45,7 +45,7 @@ describe('Click tracking', () => {
 
     expect(mockTrack).toHaveBeenCalledWith(
       'click',
-      expect.objectContaining({ tag: 'a' })
+      expect.objectContaining({ tag: 'a' }),
     );
   });
 
@@ -55,7 +55,7 @@ describe('Click tracking', () => {
 
     expect(mockTrack).toHaveBeenCalledWith(
       'click',
-      expect.objectContaining({ isExternal: true })
+      expect.objectContaining({ isExternal: true }),
     );
   });
 

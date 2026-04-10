@@ -41,13 +41,13 @@ describe('session/session-storage', () => {
 
     store.set(
       SESSION_KEY,
-      JSON.stringify({ sessionId: '', startedAt: 1, lastActivityAt: 1 })
+      JSON.stringify({ sessionId: '', startedAt: 1, lastActivityAt: 1 }),
     );
     expect(loadSession()).toBeNull();
 
     store.set(
       SESSION_KEY,
-      JSON.stringify({ sessionId: 's1', startedAt: '1', lastActivityAt: 1 })
+      JSON.stringify({ sessionId: 's1', startedAt: '1', lastActivityAt: 1 }),
     );
     expect(loadSession()).toBeNull();
   });
@@ -95,7 +95,7 @@ describe('session/session-storage', () => {
         sessionId: 'session_3',
         startedAt: 1,
         lastActivityAt: 1,
-      })
+      }),
     ).not.toThrow();
 
     expect(() => clearSession()).not.toThrow();

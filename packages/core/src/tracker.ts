@@ -56,7 +56,7 @@ export function init(config: AnalyticsConfig): AnalyticsTracker {
     console.warn(
       '[AnalyticsSDK] init() was called more than once. ' +
         'The second call has been ignored. ' +
-        'If you need to re-initialise, call destroy() first.'
+        'If you need to re-initialise, call destroy() first.',
     );
     return _instance;
   }
@@ -75,13 +75,13 @@ export function init(config: AnalyticsConfig): AnalyticsTracker {
  */
 export function track(
   eventType: EventType,
-  properties?: EventProperties
+  properties?: EventProperties,
 ): void {
   if (_instance === null) {
     console.warn(
       '[AnalyticsSDK] track() was called before init(). ' +
         'The event has been dropped. ' +
-        'Ensure init() is called at application startup.'
+        'Ensure init() is called at application startup.',
     );
     return;
   }
@@ -268,7 +268,7 @@ export class AnalyticsTracker {
     if (this.isDestroyed) {
       if (this.config.debug) {
         console.warn(
-          '[AnalyticsSDK] track() called after destroy() — event dropped.'
+          '[AnalyticsSDK] track() called after destroy() — event dropped.',
         );
       }
       return;
@@ -278,7 +278,7 @@ export class AnalyticsTracker {
     if (!isTrackingAllowed()) {
       if (this.config.debug) {
         console.info(
-          `[AnalyticsSDK] Event "${eventType}" blocked by privacy settings.`
+          `[AnalyticsSDK] Event "${eventType}" blocked by privacy settings.`,
         );
       }
       return;
@@ -294,7 +294,7 @@ export class AnalyticsTracker {
     // Build the complete event
     const event = buildEvent(
       eventType,
-      Object.keys(sanitised).length > 0 ? sanitised : undefined
+      Object.keys(sanitised).length > 0 ? sanitised : undefined,
     );
 
     if (this.config.debug) {
