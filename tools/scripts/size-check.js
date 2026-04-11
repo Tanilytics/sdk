@@ -6,7 +6,7 @@ const zlib = require('node:zlib');
 
 function printUsage() {
   console.error(
-    'Usage: node tools/scripts/size-check.js <packageName> <limitKb>'
+    'Usage: node tools/scripts/size-check.js <packageName> <limitKb>',
   );
   console.error('Example: node tools/scripts/size-check.js core 15');
 }
@@ -31,7 +31,7 @@ const bundlePath = path.resolve(
   'packages',
   packageName,
   'dist',
-  'index.iife.js'
+  'index.iife.js',
 );
 
 if (!fs.existsSync(bundlePath)) {

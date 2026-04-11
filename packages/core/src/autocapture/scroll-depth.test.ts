@@ -39,7 +39,7 @@ class MockIntersectionObserver {
           intersectionRatio: 1,
         } as IntersectionObserverEntry,
       ],
-      this as unknown as IntersectionObserver
+      this as unknown as IntersectionObserver,
     );
   }
 }
@@ -79,7 +79,7 @@ describe('Scroll depth tracking', () => {
 
     expect(mockTrack).toHaveBeenCalledWith(
       'scroll',
-      expect.objectContaining({ milestone: 25 })
+      expect.objectContaining({ milestone: 25 }),
     );
   });
 
@@ -96,7 +96,7 @@ describe('Scroll depth tracking', () => {
   it('fires all four milestones independently', () => {
     [25, 50, 75, 100].forEach((milestone) => {
       const sentinel = document.querySelector(
-        `[data-analytics-sentinel="${milestone}"]`
+        `[data-analytics-sentinel="${milestone}"]`,
       )!;
       mockObserver.trigger(sentinel);
     });
@@ -115,7 +115,7 @@ describe('Scroll depth tracking', () => {
 
   it('resets milestones after resetScrollDepth()', () => {
     const sentinel25 = document.querySelector(
-      '[data-analytics-sentinel="25"]'
+      '[data-analytics-sentinel="25"]',
     )!;
     mockObserver.trigger(sentinel25);
     expect(mockTrack).toHaveBeenCalledTimes(1);
@@ -125,7 +125,7 @@ describe('Scroll depth tracking', () => {
 
     // After reset, new sentinels are placed
     const newSentinel = document.querySelector(
-      '[data-analytics-sentinel="25"]'
+      '[data-analytics-sentinel="25"]',
     )!;
     mockObserver.trigger(newSentinel);
     expect(mockTrack).toHaveBeenCalledTimes(1);

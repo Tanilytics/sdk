@@ -24,7 +24,7 @@ const DEFAULT_OPTIONS: RetryOptions = {
  */
 export async function withRetry<T extends { ok: boolean; retryable: boolean }>(
   fn: () => Promise<T>,
-  opts: Partial<RetryOptions> = {}
+  opts: Partial<RetryOptions> = {},
 ): Promise<RetryResult<T>> {
   const options = { ...DEFAULT_OPTIONS, ...opts };
   let lastResult: T | undefined;

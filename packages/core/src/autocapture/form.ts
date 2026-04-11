@@ -2,7 +2,7 @@ import { EventTypes } from '../events/event-types';
 
 type TrackFn = (
   eventType: string,
-  properties?: Record<string, string | number | boolean | null>
+  properties?: Record<string, string | number | boolean | null>,
 ) => void;
 
 interface FormTrackerOptions {
@@ -74,6 +74,6 @@ function countFields(form: HTMLFormElement): number {
   return form.querySelectorAll(
     'input:not([type="hidden"]):not([type="submit"]):not([type="button"]), ' +
       'textarea, ' +
-      'select'
+      'select',
   ).length;
 }

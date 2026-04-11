@@ -16,7 +16,7 @@ export function buildSessionContext(): SessionContext {
 export function buildPayload(
   events: IngestionEvent[],
   visitorId: string,
-  siteId: string
+  siteId: string,
 ): IngestionPayload {
   return {
     site_id: siteId,

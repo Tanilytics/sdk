@@ -44,7 +44,7 @@ describe('events/event-builder', () => {
 
   it('throws if site token is not configured', () => {
     expect(() => buildEvent(EventTypes.CLICK)).toThrow(
-      /Site token is not configured/
+      /Site token is not configured/,
     );
   });
 
@@ -89,7 +89,7 @@ describe('events/event-builder', () => {
 
     expect(getRandomValues).toHaveBeenCalledTimes(1);
     expect(event.event_id).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
     );
   });
 
@@ -101,7 +101,7 @@ describe('events/event-builder', () => {
     const event = buildEvent('page_view');
 
     expect(event.event_id).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
     );
   });
 

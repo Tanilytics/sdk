@@ -26,7 +26,7 @@ describe('sendBeacon', () => {
       [makeEvent('1')],
       'https://api.example.com/ingest',
       'abc',
-      'visitor-1'
+      'visitor-1',
     );
 
     expect(result).toEqual({ sent: false, reason: 'sendBeacon not available' });
@@ -40,7 +40,7 @@ describe('sendBeacon', () => {
       [makeEvent('1')],
       'https://api.example.com/ingest',
       'site token',
-      'visitor-1'
+      'visitor-1',
     );
 
     expect(result.sent).toBe(true);

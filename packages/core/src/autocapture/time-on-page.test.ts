@@ -33,7 +33,7 @@ describe('Time on page tracking', () => {
 
     expect(mockTrack).toHaveBeenCalledWith(
       'page_leave',
-      expect.objectContaining({ duration: expect.any(Number) })
+      expect.objectContaining({ duration: expect.any(Number) }),
     );
   });
 

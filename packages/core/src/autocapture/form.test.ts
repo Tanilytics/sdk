@@ -16,7 +16,7 @@ afterEach(() => {
 
 function submitForm(form: HTMLFormElement) {
   form.dispatchEvent(
-    new SubmitEvent('submit', { bubbles: true, cancelable: true })
+    new SubmitEvent('submit', { bubbles: true, cancelable: true }),
   );
 }
 
@@ -36,7 +36,7 @@ describe('Form tracking', () => {
         eventName: 'form_submit',
         formId: 'newsletter',
         formAction: expect.stringContaining('/subscribe'),
-      })
+      }),
     );
   });
 
@@ -65,7 +65,7 @@ describe('Form tracking', () => {
 
     expect(mockTrack).toHaveBeenCalledWith(
       'form_submit',
-      expect.objectContaining({ fieldCount: 3 })
+      expect.objectContaining({ fieldCount: 3 }),
     );
   });
 

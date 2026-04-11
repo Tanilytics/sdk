@@ -20,17 +20,18 @@ jobs:
     steps:
       # ── Checkout ────────────────────────────────────────────────────────────
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # Full history needed for nx affected to compare against base branch
           fetch-depth: 0
 
       # ── Node setup ──────────────────────────────────────────────────────────
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
+          cache-dependency-path: package-lock.json
 
       # ── Install ─────────────────────────────────────────────────────────────
       - name: Install dependencies

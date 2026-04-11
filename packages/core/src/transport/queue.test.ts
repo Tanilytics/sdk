@@ -38,7 +38,7 @@ describe('EventQueue', () => {
         () =>
           new Promise((resolve) => {
             resolveFirstSend = resolve;
-          })
+          }),
       )
       .mockResolvedValue({ ok: true, retryable: false });
 
@@ -79,7 +79,7 @@ describe('EventQueue', () => {
       () =>
         new Promise((resolve) => {
           resolveFirstSend = resolve;
-        })
+        }),
     );
 
     const queue = new EventQueue({

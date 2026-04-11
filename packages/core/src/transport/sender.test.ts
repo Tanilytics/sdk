@@ -34,7 +34,7 @@ describe('sendBatch', () => {
         siteToken: 'site_token',
         debug: false,
       },
-      'visitor-1'
+      'visitor-1',
     );
 
     expect(result).toEqual({ ok: true, retryable: false });
@@ -66,7 +66,7 @@ describe('sendBatch', () => {
 
     vi.stubGlobal(
       'CompressionStream',
-      FakeCompressionStream as unknown as typeof CompressionStream
+      FakeCompressionStream as unknown as typeof CompressionStream,
     );
     vi.stubGlobal('fetch', fetchMock);
 
@@ -77,7 +77,7 @@ describe('sendBatch', () => {
         siteToken: 'site_token',
         debug: false,
       },
-      'visitor-1'
+      'visitor-1',
     );
 
     expect(result).toEqual({ ok: true, retryable: false });
@@ -89,7 +89,7 @@ describe('sendBatch', () => {
     });
     expect(init.body).toBeInstanceOf(ArrayBuffer);
     expect(new TextDecoder().decode(init.body as ArrayBuffer)).toContain(
-      '"site_id":"site_token"'
+      '"site_id":"site_token"',
     );
   });
 });

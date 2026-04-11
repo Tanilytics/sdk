@@ -10,7 +10,7 @@ export function sendBeacon(
   events: IngestionEvent[],
   endpoint: string,
   siteToken: string,
-  visitorId: string
+  visitorId: string,
 ): BeaconResult {
   // Beacon is not available in all environments
   if (

@@ -36,6 +36,6 @@ export function resolveDefaultEndpoint(explicitEndpoint?: string): string {
   }
 
   throw new Error(
-    `[AnalyticsSDK] endpoint is required. Set ${INGESTION_URL_ENV_VAR} or pass endpoint explicitly in init().`
+    `[AnalyticsSDK] endpoint is required. Set ${INGESTION_URL_ENV_VAR} or pass endpoint explicitly in init().`,
   );
 }

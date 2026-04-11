@@ -2,7 +2,7 @@ import { EventTypes } from '../events/event-types';
 
 type TrackFn = (
   eventType: string,
-  properties?: Record<string, string | number | boolean | null>
+  properties?: Record<string, string | number | boolean | null>,
 ) => void;
 
 interface ClickTrackerOptions {
@@ -124,7 +124,7 @@ function isInsidePasswordForm(element: HTMLElement): boolean {
 }
 
 function buildClickProperties(
-  element: HTMLElement
+  element: HTMLElement,
 ): Record<string, string | number | boolean | null> {
   const tag = element.tagName.toLowerCase();
   const text = getElementText(element);

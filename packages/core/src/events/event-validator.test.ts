@@ -21,7 +21,7 @@ describe('events/event-validator', () => {
         nested: { deep: true },
         list: [1, 2, 3],
       },
-      false
+      false,
     );
 
     expect(result.valid).toBe(true);
@@ -36,7 +36,7 @@ describe('events/event-validator', () => {
   it('drops non-object properties values', () => {
     const result = validateProperties(
       ['not-an-object'] as unknown as EventProperties,
-      false
+      false,
     );
 
     expect(result.valid).toBe(false);

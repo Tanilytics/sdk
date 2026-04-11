@@ -8,7 +8,7 @@ export interface ValidationResult {
 
 export function validateProperties(
   properties: EventProperties | undefined,
-  debug: boolean
+  debug: boolean,
 ): ValidationResult {
   if (properties === undefined) {
     return { valid: true, sanitised: {}, warnings: [] };
