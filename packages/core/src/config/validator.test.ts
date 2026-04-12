@@ -110,6 +110,12 @@ describe('validate', () => {
       ).toThrow(/debug must be a boolean/);
     });
 
+    it('throws when compress is not boolean', () => {
+      expect(() =>
+        validate(makeValidConfig({ compress: 'yes' as unknown as boolean })),
+      ).toThrow(/compress must be a boolean/);
+    });
+
     it('throws when requireConsent is not boolean', () => {
       expect(() =>
         validate(makeValidConfig({ requireConsent: 1 as unknown as boolean })),

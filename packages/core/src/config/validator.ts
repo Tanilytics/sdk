@@ -97,6 +97,15 @@ export function validate(config: AnalyticsConfig): void {
       );
     }
   }
+
+  // ── compress ─────────────────────────────────────────────────────────────
+  if (config.compress !== undefined && typeof config.compress !== 'boolean') {
+    throw new Error(
+      `[AnalyticsSDK] compress must be a boolean.\n` +
+        `Received: ${config.compress}`,
+    );
+  }
+
   // ── debug ──────────────────────────────────────────────────────────
   if (config.debug !== undefined && typeof config.debug !== 'boolean') {
     throw new Error(

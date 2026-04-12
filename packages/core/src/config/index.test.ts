@@ -33,6 +33,7 @@ describe('validateAndMergeConfig', () => {
 
     expect(resolved.siteToken).toBe('sk_live_abc12345');
     expect(resolved.endpoint).toBe('https://env.example.com/events');
+    expect(resolved.compress).toBe(DEFAULT_CONFIG.compress);
     expect(resolved.autocapture.clicks).toBe(false);
     expect(resolved.autocapture.pageViews).toBe(
       DEFAULT_CONFIG.autocapture.pageViews,

@@ -26,6 +26,7 @@ describe('merge', () => {
     expect(result.flushInterval).toBe(DEFAULT_CONFIG.flushInterval);
     expect(result.maxBatchSize).toBe(DEFAULT_CONFIG.maxBatchSize);
     expect(result.maxQueueSize).toBe(DEFAULT_CONFIG.maxQueueSize);
+    expect(result.compress).toBe(DEFAULT_CONFIG.compress);
     expect(result.debug).toBe(DEFAULT_CONFIG.debug);
     expect(result.requireConsent).toBe(DEFAULT_CONFIG.requireConsent);
     expect(result.respectDoNotTrack).toBe(DEFAULT_CONFIG.respectDoNotTrack);
@@ -39,6 +40,7 @@ describe('merge', () => {
       flushInterval: 5000,
       maxBatchSize: 10,
       maxQueueSize: 200,
+      compress: false,
       debug: true,
       requireConsent: true,
       respectDoNotTrack: false,
@@ -49,6 +51,7 @@ describe('merge', () => {
     expect(result.flushInterval).toBe(5000);
     expect(result.maxBatchSize).toBe(10);
     expect(result.maxQueueSize).toBe(200);
+    expect(result.compress).toBe(false);
     expect(result.debug).toBe(true);
     expect(result.requireConsent).toBe(true);
     expect(result.respectDoNotTrack).toBe(false);
@@ -109,9 +112,14 @@ describe('merge', () => {
     expect(Object.isFrozen(result.autocapture)).toBe(true);
 
     const mutableResult = result as unknown as {
+      compress: boolean;
       debug: boolean;
       autocapture: ResolvedConfig['autocapture'];
     };
+
+    expect(() => {
+      mutableResult.compress = false;
+    }).toThrow();
 
     expect(() => {
       mutableResult.debug = true;

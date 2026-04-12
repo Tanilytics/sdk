@@ -8,6 +8,7 @@ export function merge(config: AnalyticsConfig): ResolvedConfig {
     flushInterval: config.flushInterval ?? DEFAULT_CONFIG.flushInterval,
     maxBatchSize: config.maxBatchSize ?? DEFAULT_CONFIG.maxBatchSize,
     maxQueueSize: config.maxQueueSize ?? DEFAULT_CONFIG.maxQueueSize,
+    compress: config.compress ?? DEFAULT_CONFIG.compress,
     debug: config.debug ?? DEFAULT_CONFIG.debug,
     requireConsent: config.requireConsent ?? DEFAULT_CONFIG.requireConsent,
     respectDoNotTrack:

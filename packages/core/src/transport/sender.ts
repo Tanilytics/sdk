@@ -5,6 +5,7 @@ import { withRetry } from './retry';
 export interface SenderConfig {
   endpoint: string;
   siteToken: string;
+  compress: boolean;
   debug: boolean;
 }
 
@@ -58,7 +59,7 @@ async function attemptSend(
 
   try {
     const payload = buildPayload(events, visitorId, config.siteToken);
-    const requestBody = await buildRequestBody(payload);
+    const requestBody = await buildRequestBody(payload, config);
 
     response = await fetch(config.endpoint, {
       method: 'POST',
@@ -83,8 +84,19 @@ async function attemptSend(
 
 async function buildRequestBody(
   payload: IngestionPayload,
+  config: Pick<SenderConfig, 'compress'>,
 ): Promise<RequestBody> {
   const json = JSON.stringify(payload);
+
+  if (!config.compress) {
+    return {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: json,
+    };
+  }
+
   const compressedBody = await gzipJson(json);
 
   if (compressedBody === null) {

@@ -8,6 +8,7 @@ export const DEFAULT_CONFIG: BaseDefaultConfig = {
   flushInterval: 10000,
   maxBatchSize: 100,
   maxQueueSize: 1000,
+  compress: true,
   debug: false,
   requireConsent: false,
   respectDoNotTrack: true,

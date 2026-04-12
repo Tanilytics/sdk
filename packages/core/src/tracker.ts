@@ -170,6 +170,7 @@ export class AnalyticsTracker {
       senderConfig: {
         endpoint: this.config.endpoint,
         siteToken: this.config.siteToken,
+        compress: this.config.compress,
         debug: this.config.debug,
       },
     };
