@@ -12,13 +12,35 @@ export function merge(config: AnalyticsConfig): ResolvedConfig {
     requireConsent: config.requireConsent ?? DEFAULT_CONFIG.requireConsent,
     respectDoNotTrack:
       config.respectDoNotTrack ?? DEFAULT_CONFIG.respectDoNotTrack,
-    autocapture: {
-      ...DEFAULT_CONFIG.autocapture,
-      ...config.autocapture,
-    },
+    autocapture: resolveAutocapture(config.autocapture),
   };
 
   return deepFreeze(resolved);
+}
+
+function resolveAutocapture(config: AnalyticsConfig['autocapture']) {
+  if (config === undefined || config === true) {
+    return { ...DEFAULT_CONFIG.autocapture };
+  }
+
+  if (config === false) {
+    return disableAllAutocapture();
+  }
+
+  return {
+    ...DEFAULT_CONFIG.autocapture,
+    ...config,
+  };
+}
+
+function disableAllAutocapture(): ResolvedConfig['autocapture'] {
+  return {
+    pageViews: false,
+    scrollDepth: false,
+    timeOnPage: false,
+    clicks: false,
+    formSubmissions: false,
+  };
 }
 
 function deepFreeze<T>(obj: T): T {

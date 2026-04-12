@@ -66,6 +66,32 @@ describe('merge', () => {
     );
   });
 
+  it('keeps all autocapture features enabled when autocapture is true', () => {
+    const result = merge({
+      siteToken: 'sk_live_override123',
+      endpoint: 'https://example.com/events',
+      autocapture: true,
+    });
+
+    expect(result.autocapture).toEqual(DEFAULT_CONFIG.autocapture);
+  });
+
+  it('disables all autocapture features when autocapture is false', () => {
+    const result = merge({
+      siteToken: 'sk_live_override123',
+      endpoint: 'https://example.com/events',
+      autocapture: false,
+    });
+
+    expect(result.autocapture).toEqual({
+      pageViews: false,
+      scrollDepth: false,
+      timeOnPage: false,
+      clicks: false,
+      formSubmissions: false,
+    });
+  });
+
   it('throws when endpoint is omitted and INGESTION_URL is missing', () => {
     delete process.env[INGESTION_URL_ENV_VAR];
 

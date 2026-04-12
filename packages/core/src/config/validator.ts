@@ -127,9 +127,13 @@ export function validate(config: AnalyticsConfig): void {
 
   // ── autocapture ──────────────────────────────────────────────────────────
   if (config.autocapture !== undefined) {
+    if (typeof config.autocapture === 'boolean') {
+      return;
+    }
+
     if (typeof config.autocapture !== 'object' || config.autocapture === null) {
       throw new Error(
-        `[AnalyticsSDK] autocapture must be an object.\n` +
+        `[AnalyticsSDK] autocapture must be a boolean or an object.\n` +
           `Received: ${config.autocapture}`,
       );
     }

@@ -119,13 +119,15 @@ interface AnalyticsConfig {
   debug?: boolean;
   requireConsent?: boolean;
   respectDoNotTrack?: boolean;
-  autocapture?: {
-    pageViews?: boolean;
-    scrollDepth?: boolean;
-    timeOnPage?: boolean;
-    clicks?: boolean;
-    formSubmissions?: boolean;
-  };
+  autocapture?:
+    | boolean
+    | {
+        pageViews?: boolean;
+        scrollDepth?: boolean;
+        timeOnPage?: boolean;
+        clicks?: boolean;
+        formSubmissions?: boolean;
+      };
 }
 ```
 
@@ -137,7 +139,33 @@ Current defaults:
 - `debug: false`
 - `requireConsent: false`
 - `respectDoNotTrack: true`
-- autocapture enabled for page views, scroll depth, time on page, clicks, and form submissions
+- `autocapture: true`
+
+Autocapture can be configured in two ways:
+
+```ts
+analytics.init({
+  siteToken: 'sk_live_abc12345',
+  endpoint: 'https://ingest.example.com/api/v1/events',
+  autocapture: true,
+});
+
+analytics.init({
+  siteToken: 'sk_live_abc12345',
+  endpoint: 'https://ingest.example.com/api/v1/events',
+  autocapture: {
+    pageViews: true,
+    clicks: true,
+    formSubmissions: true,
+    scrollDepth: true,
+    timeOnPage: false,
+  },
+});
+```
+
+- `autocapture: true` enables all built-in autocapture features
+- `autocapture: false` disables all built-in autocapture features
+- `autocapture: { ... }` overrides individual features
 
 Validation rules currently enforced by the SDK include:
 

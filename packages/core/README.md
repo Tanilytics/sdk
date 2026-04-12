@@ -10,6 +10,7 @@ import analytics from '@analytics-sdk/core';
 analytics.init({
   siteToken: 'sk_live_abc12345',
   endpoint: 'https://ingest.example.com/api/v1/events',
+  autocapture: true,
 });
 
 analytics.track('audio_downloaded', {
