@@ -366,7 +366,7 @@ export class AnalyticsTracker {
 
 function validateCustomEventName(eventName: string): string {
   if (typeof eventName !== 'string') {
-    throw new Error('[AnalyticsSDK] track() event name must be a string.');
+    throw new TypeError('[AnalyticsSDK] track() event name must be a string.');
   }
 
   const trimmedEventName = eventName.trim();
