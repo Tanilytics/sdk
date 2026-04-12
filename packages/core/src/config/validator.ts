@@ -7,7 +7,7 @@ export function validate(config: AnalyticsConfig): void {
     throw new Error(
       '[AnalyticsSDK] siteToken is required.\n' +
         'Get yours from the dashboard under Settings → Sites.\n' +
-        'Example: init({ siteToken: "sk_live_abc123" })',
+        'Example: analytics.init({ siteToken: "sk_live_abc123" })',
     );
   }
 

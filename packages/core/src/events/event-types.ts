@@ -7,8 +7,8 @@ import type { EventType } from '../types';
  * The type system will catch typos at compile time.
  *
  * @example
- * import { EventTypes } from '@analytics-sdk/core'
- * track(EventTypes.CUSTOM, { action: 'newsletter_signup' })
+ * import analytics from '@analytics-sdk/core'
+ * analytics.track(analytics.EventTypes.CLICK, { action: 'newsletter_signup' })
  */
 export const EventTypes = {
   PAGE_VIEW: 'page_view' as EventType,

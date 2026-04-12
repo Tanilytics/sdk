@@ -1,7 +1,7 @@
-import { SDK_VERSION, type AnalyticsConfig } from '@analytics-sdk/core';
+import { type AnalyticsConfig } from '@analytics-sdk/core';
 
 export function youtube(): string {
-  const config: Partial<AnalyticsConfig> = { debug: Boolean(SDK_VERSION) };
+  const config: Partial<AnalyticsConfig> = { debug: true };
 
   return config.debug ? 'youtube' : 'youtube';
 }

@@ -48,8 +48,8 @@ let _instance: AnalyticsTracker | null = null;
  * Call this once at application startup.
  *
  * @example
- * import { init } from '@analytics-sdk/core'
- * init({ siteToken: 'sk_live_abc123' })
+ * import analytics from '@analytics-sdk/core'
+ * analytics.init({ siteToken: 'sk_live_abc123' })
  */
 export function init(config: AnalyticsConfig): AnalyticsTracker {
   if (_instance !== null) {
@@ -67,11 +67,11 @@ export function init(config: AnalyticsConfig): AnalyticsTracker {
 
 /**
  * Fires a tracking event manually.
- * The event type should come from EventTypes to avoid typos.
+ * The event type should come from analytics.EventTypes to avoid typos.
  *
  * @example
- * import { track, EventTypes } from '@analytics-sdk/core'
- * track(EventTypes.CUSTOM, { action: 'newsletter_signup' })
+ * import analytics from '@analytics-sdk/core'
+ * analytics.track(analytics.EventTypes.CLICK, { action: 'newsletter_signup' })
  */
 export function track(
   eventType: EventType,

@@ -39,37 +39,38 @@ bun install
 ## Quick Start
 
 ```ts
-import { EventTypes, init, track } from '@analytics-sdk/core';
+import analytics from '@analytics-sdk/core';
 
-init({
+analytics.init({
   siteToken: 'sk_live_abc12345',
   endpoint: 'https://ingest.example.com/api/v1/events',
 });
 
-track(EventTypes.CUSTOM, {
+analytics.track(analytics.EventTypes.CLICK, {
   action: 'newsletter_signup',
   plan: 'pro',
 });
 ```
 
-You can also provide the ingestion endpoint through the `INGESTION_URL` environment variable instead of passing `endpoint` to `init()`.
+You can also provide the ingestion endpoint through the `INGESTION_URL` environment variable instead of passing `endpoint` to `analytics.init()`.
 
 ## Public API
 
-The current public API for `@analytics-sdk/core` is exported from `packages/core/src/index.ts`:
+The current public API for `@analytics-sdk/core` is a default export object with:
 
-- `init(config)`
-- `track(eventType, properties?)`
-- `flush()`
-- `destroy()`
-- `optOut()`
-- `optIn()`
-- `isOptedOut()`
-- `giveConsent()`
-- `withdrawConsent()`
-- `EventTypes`
-- `SDK_VERSION`
-- exported types including `AnalyticsConfig`, `EventType`, `EventProperties`, and `IngestionEvent`
+- `analytics.init(config)`
+- `analytics.track(eventType, properties?)`
+- `analytics.flush()`
+- `analytics.destroy()`
+- `analytics.optOut()`
+- `analytics.optIn()`
+- `analytics.isOptedOut()`
+- `analytics.giveConsent()`
+- `analytics.withdrawConsent()`
+- `analytics.EventTypes`
+- `analytics.SDK_VERSION`
+
+The package also exports types including `AnalyticsConfig`, `EventType`, `EventProperties`, and `IngestionEvent`.
 
 ## Supported Event Types
 
@@ -86,11 +87,10 @@ Use `EventTypes` rather than raw strings:
 - `MEDIA_PROGRESS`
 - `MEDIA_BUFFER`
 - `MEDIA_COMPLETE`
-- `CUSTOM`
 
 ## Configuration
 
-`init()` accepts this shape:
+`analytics.init()` accepts this shape:
 
 ```ts
 interface AnalyticsConfig {
@@ -114,8 +114,8 @@ interface AnalyticsConfig {
 
 Current defaults:
 
-- `flushInterval: 3000`
-- `maxBatchSize: 50`
+- `flushInterval: 10000`
+- `maxBatchSize: 100`
 - `maxQueueSize: 1000`
 - `debug: false`
 - `requireConsent: false`
@@ -136,20 +136,14 @@ Validation rules currently enforced by the SDK include:
 The SDK exposes helpers for common privacy flows:
 
 ```ts
-import {
-  giveConsent,
-  isOptedOut,
-  optIn,
-  optOut,
-  withdrawConsent,
-} from '@analytics-sdk/core';
+import analytics from '@analytics-sdk/core';
 
-optOut();
-optIn();
-giveConsent();
-withdrawConsent();
+analytics.optOut();
+analytics.optIn();
+analytics.giveConsent();
+analytics.withdrawConsent();
 
-console.log(isOptedOut());
+console.log(analytics.isOptedOut());
 ```
 
 Current privacy behavior:
