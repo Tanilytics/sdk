@@ -1,7 +1,7 @@
 import type { AnalyticsConfig } from './types';
 
 export function validate(config: AnalyticsConfig): void {
-  // ── siteToken ────────────────────────────────────────────────────────────
+  // siteToken
 
   if (!config.siteToken || typeof config.siteToken !== 'string') {
     throw new Error(
@@ -25,7 +25,7 @@ export function validate(config: AnalyticsConfig): void {
     );
   }
 
-  // ── endpoint ─────────────────────────────────────────────────────────────
+  // endpoint
 
   if (config.endpoint !== undefined) {
     let parsed: URL;
@@ -52,7 +52,7 @@ export function validate(config: AnalyticsConfig): void {
     }
   }
 
-  // ── flushInterval ─────────────────────────────────────────────────────────
+  // flushInterval
 
   if (config.flushInterval !== undefined) {
     if (
@@ -67,7 +67,7 @@ export function validate(config: AnalyticsConfig): void {
     }
   }
 
-  // ── maxBatchSize ──────────────────────────────────────────────────────────
+  // maxBatchSize
 
   if (config.maxBatchSize !== undefined) {
     if (
@@ -83,7 +83,7 @@ export function validate(config: AnalyticsConfig): void {
     }
   }
 
-  // ── maxQueueSize ──────────────────────────────────────────────────────────
+  // maxQueueSize
   if (config.maxQueueSize !== undefined) {
     if (
       typeof config.maxQueueSize !== 'number' ||
@@ -98,7 +98,7 @@ export function validate(config: AnalyticsConfig): void {
     }
   }
 
-  // ── compress ─────────────────────────────────────────────────────────────
+  // compress
   if (config.compress !== undefined && typeof config.compress !== 'boolean') {
     throw new Error(
       `[AnalyticsSDK] compress must be a boolean.\n` +
@@ -106,14 +106,14 @@ export function validate(config: AnalyticsConfig): void {
     );
   }
 
-  // ── debug ──────────────────────────────────────────────────────────
+  // debug
   if (config.debug !== undefined && typeof config.debug !== 'boolean') {
     throw new Error(
       `[AnalyticsSDK] debug must be a boolean.\n` + `Received: ${config.debug}`,
     );
   }
 
-  // ── requireConsent ──────────────────────────────────────────────────────────
+  // requireConsent
   if (
     config.requireConsent !== undefined &&
     typeof config.requireConsent !== 'boolean'
@@ -123,7 +123,7 @@ export function validate(config: AnalyticsConfig): void {
         `Received: ${config.requireConsent}`,
     );
   }
-  // ── respectDoNotTrack ──────────────────────────────────────────────────────────
+  // respectDoNotTrack
   if (
     config.respectDoNotTrack !== undefined &&
     typeof config.respectDoNotTrack !== 'boolean'
@@ -134,7 +134,7 @@ export function validate(config: AnalyticsConfig): void {
     );
   }
 
-  // ── autocapture ──────────────────────────────────────────────────────────
+  // autocapture
   if (config.autocapture !== undefined) {
     if (typeof config.autocapture === 'boolean') {
       return;

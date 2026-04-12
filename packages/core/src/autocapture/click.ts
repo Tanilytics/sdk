@@ -34,9 +34,7 @@ const MAX_TEXT_LENGTH = 50;
 let _track: TrackFn | null = null;
 let _onClick: ((e: MouseEvent) => void) | null = null;
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Public API
-// ─────────────────────────────────────────────────────────────────────────────
 
 export function attachClickTracker(opts: ClickTrackerOptions): void {
   if (_onClick !== null) return; // Already attached
@@ -57,9 +55,7 @@ export function detachClickTracker(): void {
   _track = null;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Click handler
-// ─────────────────────────────────────────────────────────────────────────────
 
 function handleClick(event: MouseEvent): void {
   if (_track === null) return;
@@ -81,9 +77,7 @@ function handleClick(event: MouseEvent): void {
   _track(EventTypes.CLICK, properties);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // DOM helpers
-// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Walks up the DOM from the clicked element to find

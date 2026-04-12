@@ -67,9 +67,7 @@ export async function withRetry<T extends { ok: boolean; retryable: boolean }>(
   };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Helpers
-// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Exponential backoff with jitter.

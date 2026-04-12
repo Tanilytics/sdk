@@ -102,7 +102,7 @@ export class EventQueue {
     }
   }
 
-  // ── Page unload handling ───────────────────────────────────────────────────
+  // Page unload handling
 
   private handleVisibilityChange(): void {
     if (typeof document === 'undefined') return;
