@@ -6,7 +6,8 @@ vi.mock('../config/device', () => ({
 
 import {
   __resetEventBuilderStateForTests,
-  buildEvent,
+  buildCustomEvent,
+  buildInternalEvent,
   configureSiteToken,
 } from './event-builder';
 import { EventTypes } from './event-types';
@@ -43,12 +44,12 @@ describe('events/event-builder', () => {
   });
 
   it('throws if site token is not configured', () => {
-    expect(() => buildEvent(EventTypes.CLICK)).toThrow(
+    expect(() => buildInternalEvent(EventTypes.CLICK)).toThrow(
       /Site token is not configured/,
     );
   });
 
-  it('builds a complete event after configureSiteToken', () => {
+  it('builds a complete internal event after configureSiteToken', () => {
     vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
     vi.stubGlobal('crypto', {
       randomUUID: vi.fn(() => 'event-uuid-1'),
@@ -56,7 +57,7 @@ describe('events/event-builder', () => {
 
     configureSiteToken('site_token_123');
 
-    const event = buildEvent(EventTypes.CLICK, {
+    const event = buildInternalEvent(EventTypes.CLICK, {
       plan: 'pro',
       trial: false,
     });
@@ -74,6 +75,32 @@ describe('events/event-builder', () => {
     });
   });
 
+  it('builds a custom event with a separate event name', () => {
+    vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_001);
+    vi.stubGlobal('crypto', {
+      randomUUID: vi.fn(() => 'event-uuid-custom'),
+    });
+
+    configureSiteToken('site_token_123');
+
+    const event = buildCustomEvent('audio_downloaded', {
+      format: 'mp3',
+    });
+
+    expect(event).toEqual({
+      event_id: 'event-uuid-custom',
+      event_type: EventTypes.CUSTOM,
+      event_name: 'audio_downloaded',
+      timestamp: 1_700_000_000_001,
+      url: 'https://example.com/path',
+      referrer: 'https://ref.example.com/',
+      utm_source: 'news',
+      utm_medium: 'email',
+      utm_campaign: 'spring',
+      properties: { format: 'mp3' },
+    });
+  });
+
   it('uses getRandomValues fallback when randomUUID is unavailable', () => {
     const getRandomValues = vi.fn((arr: Uint8Array) => {
       for (let i = 0; i < arr.length; i++) arr[i] = i + 1;
@@ -85,7 +112,7 @@ describe('events/event-builder', () => {
     });
 
     configureSiteToken('site_token_123');
-    const event = buildEvent('page_view');
+    const event = buildInternalEvent('page_view');
 
     expect(getRandomValues).toHaveBeenCalledTimes(1);
     expect(event.event_id).toMatch(
@@ -98,7 +125,7 @@ describe('events/event-builder', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.1);
 
     configureSiteToken('site_token_123');
-    const event = buildEvent('page_view');
+    const event = buildInternalEvent('page_view');
 
     expect(event.event_id).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
@@ -114,7 +141,7 @@ describe('events/event-builder', () => {
     });
 
     configureSiteToken('site_token_123');
-    const event = buildEvent(EventTypes.CLICK);
+    const event = buildInternalEvent(EventTypes.CLICK);
 
     expect(event.url).toBe('');
     expect(event.referrer).toBeUndefined();

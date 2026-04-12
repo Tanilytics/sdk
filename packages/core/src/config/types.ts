@@ -7,7 +7,7 @@ export interface AnalyticsConfig {
   debug?: boolean;
   requireConsent?: boolean;
   respectDoNotTrack?: boolean;
-  autocapture?: Partial<AutocaptureConfig>;
+  autocapture?: AutocaptureOption;
 }
 
 export interface ResolvedConfig {
@@ -29,3 +29,5 @@ export interface AutocaptureConfig {
   clicks: boolean;
   formSubmissions: boolean;
 }
+
+export type AutocaptureOption = boolean | Partial<AutocaptureConfig>;

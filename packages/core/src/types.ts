@@ -1,8 +1,8 @@
 /**
- * Event types accepted by the ingestion service.
+ * Fixed event types emitted by SDK internals such as autocapture.
  * Keep this aligned with the server-side enum.
  */
-export type EventType =
+export type InternalEventType =
   | 'page_view'
   | 'page_leave'
   | 'click'
@@ -14,6 +14,13 @@ export type EventType =
   | 'media_progress'
   | 'media_buffer'
   | 'media_complete';
+
+/**
+ * Event types accepted by the ingestion service.
+ * Custom caller-defined names are represented by event_type='custom'
+ * and a separate event_name field.
+ */
+export type EventType = InternalEventType | 'custom';
 
 /**
  * Arbitrary properties attached to an event by the caller.
@@ -35,6 +42,7 @@ export interface SessionContext {
 export interface IngestionEvent {
   event_id: string;
   event_type: EventType;
+  event_name?: string;
   timestamp: number;
   url: string;
   referrer?: string;

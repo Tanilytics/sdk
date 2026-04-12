@@ -1,11 +1,27 @@
-# core
+# @analytics-sdk/core
 
-This library was generated with [Nx](https://nx.dev).
+Browser analytics SDK for Tanilytics.
 
-## Building
+## Usage
 
-Run `nx build core` to build the library.
+```ts
+import analytics from '@analytics-sdk/core';
 
-## Running unit tests
+analytics.init({
+  siteToken: 'sk_live_abc12345',
+  endpoint: 'https://ingest.example.com/api/v1/events',
+  autocapture: true,
+});
 
-Run `nx test core` to execute the unit tests via [Vitest](https://vitest.dev/).
+analytics.track('audio_downloaded', {
+  audioId: 'aud_123',
+  format: 'mp3',
+});
+```
+
+## Development
+
+- Build: `bunx nx build @analytics-sdk/core`
+- Test: `bunx nx test @analytics-sdk/core`
+- Lint: `bunx nx lint @analytics-sdk/core`
+- Typecheck: `bunx nx typecheck @analytics-sdk/core`

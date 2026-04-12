@@ -131,7 +131,17 @@ describe('validate', () => {
             autocapture: null as unknown as AnalyticsConfig['autocapture'],
           }),
         ),
-      ).toThrow(/autocapture must be an object/);
+      ).toThrow(/autocapture must be a boolean or an object/);
+    });
+
+    it('accepts autocapture as a boolean', () => {
+      expect(() =>
+        validate(makeValidConfig({ autocapture: true })),
+      ).not.toThrow();
+
+      expect(() =>
+        validate(makeValidConfig({ autocapture: false })),
+      ).not.toThrow();
     });
 
     it('throws when an autocapture field is not boolean', () => {

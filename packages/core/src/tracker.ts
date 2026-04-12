@@ -1,10 +1,14 @@
-import type { EventType, EventProperties } from './types';
+import type { InternalEventType, EventProperties } from './types';
 import type { AnalyticsConfig } from './config/types';
 import { validateAndMergeConfig } from './config';
 import type { ResolvedConfig } from './config/types';
 import { configurePrivacy, isTrackingAllowed } from './privacy';
 import { SessionManager } from './session';
-import { buildEvent, configureSiteToken } from './events';
+import {
+  buildCustomEvent,
+  buildInternalEvent,
+  configureSiteToken,
+} from './events';
 import { validateProperties } from './events/event-validator';
 import { EventQueue } from './transport';
 import type { QueueConfig } from './transport/queue';
@@ -48,8 +52,8 @@ let _instance: AnalyticsTracker | null = null;
  * Call this once at application startup.
  *
  * @example
- * import { init } from '@analytics-sdk/core'
- * init({ siteToken: 'sk_live_abc123' })
+ * import analytics from '@analytics-sdk/core'
+ * analytics.init({ siteToken: 'sk_live_abc123' })
  */
 export function init(config: AnalyticsConfig): AnalyticsTracker {
   if (_instance !== null) {
@@ -66,17 +70,13 @@ export function init(config: AnalyticsConfig): AnalyticsTracker {
 }
 
 /**
- * Fires a tracking event manually.
- * The event type should come from EventTypes to avoid typos.
+ * Fires a custom tracking event manually.
  *
  * @example
- * import { track, EventTypes } from '@analytics-sdk/core'
- * track(EventTypes.CUSTOM, { action: 'newsletter_signup' })
+ * import analytics from '@analytics-sdk/core'
+ * analytics.track('audio_downloaded', { format: 'mp3' })
  */
-export function track(
-  eventType: EventType,
-  properties?: EventProperties,
-): void {
+export function track(eventName: string, properties?: EventProperties): void {
   if (_instance === null) {
     console.warn(
       '[AnalyticsSDK] track() was called before init(). ' +
@@ -85,7 +85,7 @@ export function track(
     );
     return;
   }
-  _instance.track(eventType, properties);
+  _instance.track(eventName, properties);
 }
 
 /**
@@ -183,14 +183,14 @@ export class AnalyticsTracker {
 
     // Fire the initial page view first
     if (pageViews) {
-      this.track(EventTypes.PAGE_VIEW, { navigationType: 'load' });
+      this.trackInternal(EventTypes.PAGE_VIEW, { navigationType: 'load' });
     }
 
     // Then attach the SPA navigation listener for subsequent page views
     if (pageViews) {
       attachPageViewTracker({
         track: (eventType, properties) => {
-          this.track(eventType as EventType, properties);
+          this.trackInternal(eventType as InternalEventType, properties);
 
           // Reset per-page autocapture state after SPA page view events.
           if (eventType === EventTypes.PAGE_VIEW) {
@@ -209,28 +209,28 @@ export class AnalyticsTracker {
     if (clicks) {
       attachClickTracker({
         track: (eventType, properties) =>
-          this.track(eventType as EventType, properties),
+          this.trackInternal(eventType as InternalEventType, properties),
       });
     }
 
     if (formSubmissions) {
       attachFormTracker({
         track: (eventType, properties) =>
-          this.track(eventType as EventType, properties),
+          this.trackInternal(eventType as InternalEventType, properties),
       });
     }
 
     if (scrollDepth) {
       attachScrollDepthTracker({
         track: (eventType, properties) =>
-          this.track(eventType as EventType, properties),
+          this.trackInternal(eventType as InternalEventType, properties),
       });
     }
 
     if (timeOnPage) {
       attachTimeOnPageTracker({
         track: (eventType, properties) =>
-          this.track(eventType as EventType, properties),
+          this.trackInternal(eventType as InternalEventType, properties),
       });
     }
 
@@ -253,7 +253,7 @@ export class AnalyticsTracker {
   // ── Public methods ───────────────────────────────────────────────────────────
 
   /**
-   * The core operation — fire a tracking event.
+   * The core operation — fire a custom tracking event.
    *
    * Sequence:
    * 1. Guard — SDK not destroyed
@@ -263,7 +263,33 @@ export class AnalyticsTracker {
    * 5. Build the complete event object
    * 6. Enqueue for sending
    */
-  public track(eventType: EventType, properties?: EventProperties): void {
+  public track(eventName: string, properties?: EventProperties): void {
+    const sanitisedEventName = validateCustomEventName(eventName);
+
+    this.enqueueEvent(
+      buildCustomEvent,
+      sanitisedEventName,
+      sanitisedEventName,
+      properties,
+    );
+  }
+
+  public trackInternal(
+    eventType: InternalEventType,
+    properties?: EventProperties,
+  ): void {
+    this.enqueueEvent(buildInternalEvent, eventType, eventType, properties);
+  }
+
+  private enqueueEvent<TName extends string>(
+    build: (
+      name: TName,
+      properties?: EventProperties,
+    ) => ReturnType<typeof buildInternalEvent>,
+    logLabel: string,
+    name: TName,
+    properties?: EventProperties,
+  ): void {
     // Guard — do nothing if destroyed
     if (this.isDestroyed) {
       if (this.config.debug) {
@@ -278,7 +304,7 @@ export class AnalyticsTracker {
     if (!isTrackingAllowed()) {
       if (this.config.debug) {
         console.info(
-          `[AnalyticsSDK] Event "${eventType}" blocked by privacy settings.`,
+          `[AnalyticsSDK] Event "${logLabel}" blocked by privacy settings.`,
         );
       }
       return;
@@ -292,8 +318,8 @@ export class AnalyticsTracker {
     const sessionId = this.session.getSessionId();
 
     // Build the complete event
-    const event = buildEvent(
-      eventType,
+    const event = build(
+      name,
       Object.keys(sanitised).length > 0 ? sanitised : undefined,
     );
 
@@ -336,4 +362,24 @@ export class AnalyticsTracker {
       console.info('[AnalyticsSDK] Destroyed.');
     }
   }
+}
+
+function validateCustomEventName(eventName: string): string {
+  if (typeof eventName !== 'string') {
+    throw new TypeError('[AnalyticsSDK] track() event name must be a string.');
+  }
+
+  const trimmedEventName = eventName.trim();
+
+  if (trimmedEventName.length === 0) {
+    throw new Error('[AnalyticsSDK] track() event name cannot be empty.');
+  }
+
+  if (trimmedEventName.length > 100) {
+    throw new Error(
+      `[AnalyticsSDK] track() event name is too long. Received ${trimmedEventName.length} characters; maximum is 100.`,
+    );
+  }
+
+  return trimmedEventName;
 }

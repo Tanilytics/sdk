@@ -1,4 +1,8 @@
-import type { IngestionEvent, EventType, EventProperties } from '../types';
+import type {
+  IngestionEvent,
+  InternalEventType,
+  EventProperties,
+} from '../types';
 
 let _siteToken = '';
 
@@ -19,14 +23,36 @@ export function __resetEventBuilderStateForTests(): void {
 }
 
 /**
- * Builds a single ingestion event item from minimal inputs.
- *
- * The caller provides the event type and optional properties.
- * Everything else is read from the browser environment.
+ * Builds a single SDK-controlled ingestion event item.
  */
-export function buildEvent(
-  eventType: EventType,
+export function buildInternalEvent(
+  eventType: InternalEventType,
   properties?: EventProperties,
+): IngestionEvent {
+  const event = buildBaseEvent(eventType);
+
+  attachProperties(event, properties);
+
+  return event;
+}
+
+/**
+ * Builds a custom caller-defined ingestion event item.
+ */
+export function buildCustomEvent(
+  eventName: string,
+  properties?: EventProperties,
+): IngestionEvent {
+  const event = buildBaseEvent('custom');
+  event.event_name = eventName;
+
+  attachProperties(event, properties);
+
+  return event;
+}
+
+function buildBaseEvent(
+  eventType: IngestionEvent['event_type'],
 ): IngestionEvent {
   if (_siteToken.trim().length === 0) {
     throw new Error(
@@ -52,11 +78,16 @@ export function buildEvent(
   if (utmMedium !== undefined) event.utm_medium = utmMedium;
   if (utmCampaign !== undefined) event.utm_campaign = utmCampaign;
 
+  return event;
+}
+
+function attachProperties(
+  event: IngestionEvent,
+  properties?: EventProperties,
+): void {
   if (properties !== undefined && Object.keys(properties).length > 0) {
     event.properties = properties;
   }
-
-  return event;
 }
 
 function generateEventId(): string {

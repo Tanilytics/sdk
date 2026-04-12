@@ -1,25 +1,26 @@
-import type { EventType } from '../types';
+import type { InternalEventType } from '../types';
 
 /**
  * Canonical event type constants.
  *
  * Always use these instead of raw strings.
- * The type system will catch typos at compile time.
+ * They are intended for SDK-controlled internal events such as autocapture.
  *
  * @example
- * import { EventTypes } from '@analytics-sdk/core'
- * track(EventTypes.CUSTOM, { action: 'newsletter_signup' })
+ * import analytics from '@analytics-sdk/core'
+ * analytics.track('audio_downloaded', { format: 'mp3' })
  */
 export const EventTypes = {
-  PAGE_VIEW: 'page_view' as EventType,
-  PAGE_LEAVE: 'page_leave' as EventType,
-  CLICK: 'click' as EventType,
-  FORM_SUBMIT: 'form_submit' as EventType,
-  SCROLL: 'scroll' as EventType,
-  MEDIA_PLAY: 'media_play' as EventType,
-  MEDIA_PAUSE: 'media_pause' as EventType,
-  MEDIA_SEEK: 'media_seek' as EventType,
-  MEDIA_PROGRESS: 'media_progress' as EventType,
-  MEDIA_BUFFER: 'media_buffer' as EventType,
-  MEDIA_COMPLETE: 'media_complete' as EventType,
+  PAGE_VIEW: 'page_view' as InternalEventType,
+  PAGE_LEAVE: 'page_leave' as InternalEventType,
+  CLICK: 'click' as InternalEventType,
+  FORM_SUBMIT: 'form_submit' as InternalEventType,
+  SCROLL: 'scroll' as InternalEventType,
+  MEDIA_PLAY: 'media_play' as InternalEventType,
+  MEDIA_PAUSE: 'media_pause' as InternalEventType,
+  MEDIA_SEEK: 'media_seek' as InternalEventType,
+  MEDIA_PROGRESS: 'media_progress' as InternalEventType,
+  MEDIA_BUFFER: 'media_buffer' as InternalEventType,
+  MEDIA_COMPLETE: 'media_complete' as InternalEventType,
+  CUSTOM: 'custom' as const,
 } as const;

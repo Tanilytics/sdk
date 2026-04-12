@@ -39,41 +39,58 @@ bun install
 ## Quick Start
 
 ```ts
-import { EventTypes, init, track } from '@analytics-sdk/core';
+import analytics from '@analytics-sdk/core';
 
-init({
+analytics.init({
   siteToken: 'sk_live_abc12345',
   endpoint: 'https://ingest.example.com/api/v1/events',
 });
 
-track(EventTypes.CUSTOM, {
-  action: 'newsletter_signup',
+analytics.track('audio_downloaded', {
+  audioId: 'aud_123',
+  format: 'mp3',
+  source: 'player',
+});
+
+analytics.track('signup_clicked', {
   plan: 'pro',
 });
 ```
 
-You can also provide the ingestion endpoint through the `INGESTION_URL` environment variable instead of passing `endpoint` to `init()`.
+You can also provide the ingestion endpoint through the `INGESTION_URL` environment variable instead of passing `endpoint` to `analytics.init()`.
 
 ## Public API
 
-The current public API for `@analytics-sdk/core` is exported from `packages/core/src/index.ts`:
+The current public API for `@analytics-sdk/core` is a default export object with:
 
-- `init(config)`
-- `track(eventType, properties?)`
-- `flush()`
-- `destroy()`
-- `optOut()`
-- `optIn()`
-- `isOptedOut()`
-- `giveConsent()`
-- `withdrawConsent()`
-- `EventTypes`
-- `SDK_VERSION`
-- exported types including `AnalyticsConfig`, `EventType`, `EventProperties`, and `IngestionEvent`
+- `analytics.init(config)`
+- `analytics.track(eventName, properties?)`
+- `analytics.flush()`
+- `analytics.destroy()`
+- `analytics.optOut()`
+- `analytics.optIn()`
+- `analytics.isOptedOut()`
+- `analytics.giveConsent()`
+- `analytics.withdrawConsent()`
+- `analytics.EventTypes`
+- `analytics.SDK_VERSION`
 
-## Supported Event Types
+The package also exports types including `AnalyticsConfig`, `EventType`, `EventProperties`, and `IngestionEvent`.
 
-Use `EventTypes` rather than raw strings:
+## Event Model
+
+Manual tracking accepts any custom event name:
+
+```ts
+analytics.track('audio_downloaded', {
+  audioId: 'aud_123',
+  format: 'mp3',
+});
+```
+
+These events are sent with `event_type: 'custom'` and a separate `event_name` field.
+
+The SDK also emits fixed internal event types for autocapture and media adapters:
 
 - `PAGE_VIEW`
 - `PAGE_LEAVE`
@@ -90,7 +107,7 @@ Use `EventTypes` rather than raw strings:
 
 ## Configuration
 
-`init()` accepts this shape:
+`analytics.init()` accepts this shape:
 
 ```ts
 interface AnalyticsConfig {
@@ -102,25 +119,53 @@ interface AnalyticsConfig {
   debug?: boolean;
   requireConsent?: boolean;
   respectDoNotTrack?: boolean;
-  autocapture?: {
-    pageViews?: boolean;
-    scrollDepth?: boolean;
-    timeOnPage?: boolean;
-    clicks?: boolean;
-    formSubmissions?: boolean;
-  };
+  autocapture?:
+    | boolean
+    | {
+        pageViews?: boolean;
+        scrollDepth?: boolean;
+        timeOnPage?: boolean;
+        clicks?: boolean;
+        formSubmissions?: boolean;
+      };
 }
 ```
 
 Current defaults:
 
-- `flushInterval: 3000`
-- `maxBatchSize: 50`
+- `flushInterval: 10000`
+- `maxBatchSize: 100`
 - `maxQueueSize: 1000`
 - `debug: false`
 - `requireConsent: false`
 - `respectDoNotTrack: true`
-- autocapture enabled for page views, scroll depth, time on page, clicks, and form submissions
+- `autocapture: true`
+
+Autocapture can be configured in two ways:
+
+```ts
+analytics.init({
+  siteToken: 'sk_live_abc12345',
+  endpoint: 'https://ingest.example.com/api/v1/events',
+  autocapture: true,
+});
+
+analytics.init({
+  siteToken: 'sk_live_abc12345',
+  endpoint: 'https://ingest.example.com/api/v1/events',
+  autocapture: {
+    pageViews: true,
+    clicks: true,
+    formSubmissions: true,
+    scrollDepth: true,
+    timeOnPage: false,
+  },
+});
+```
+
+- `autocapture: true` enables all built-in autocapture features
+- `autocapture: false` disables all built-in autocapture features
+- `autocapture: { ... }` overrides individual features
 
 Validation rules currently enforced by the SDK include:
 
@@ -136,20 +181,14 @@ Validation rules currently enforced by the SDK include:
 The SDK exposes helpers for common privacy flows:
 
 ```ts
-import {
-  giveConsent,
-  isOptedOut,
-  optIn,
-  optOut,
-  withdrawConsent,
-} from '@analytics-sdk/core';
+import analytics from '@analytics-sdk/core';
 
-optOut();
-optIn();
-giveConsent();
-withdrawConsent();
+analytics.optOut();
+analytics.optIn();
+analytics.giveConsent();
+analytics.withdrawConsent();
 
-console.log(isOptedOut());
+console.log(analytics.isOptedOut());
 ```
 
 Current privacy behavior:

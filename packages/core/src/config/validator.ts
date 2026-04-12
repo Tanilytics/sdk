@@ -7,7 +7,7 @@ export function validate(config: AnalyticsConfig): void {
     throw new Error(
       '[AnalyticsSDK] siteToken is required.\n' +
         'Get yours from the dashboard under Settings → Sites.\n' +
-        'Example: init({ siteToken: "sk_live_abc123" })',
+        'Example: analytics.init({ siteToken: "sk_live_abc123" })',
     );
   }
 
@@ -127,9 +127,13 @@ export function validate(config: AnalyticsConfig): void {
 
   // ── autocapture ──────────────────────────────────────────────────────────
   if (config.autocapture !== undefined) {
+    if (typeof config.autocapture === 'boolean') {
+      return;
+    }
+
     if (typeof config.autocapture !== 'object' || config.autocapture === null) {
       throw new Error(
-        `[AnalyticsSDK] autocapture must be an object.\n` +
+        `[AnalyticsSDK] autocapture must be a boolean or an object.\n` +
           `Received: ${config.autocapture}`,
       );
     }

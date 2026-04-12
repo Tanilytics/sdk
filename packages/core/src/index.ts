@@ -6,22 +6,32 @@
 // Adding something here is a commitment to support it across versions.
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ── Core functions ────────────────────────────────────────────────────────────
-export { init, track, flush, destroy } from './tracker';
+import { EventTypes } from './events/event-types';
+import {
+  giveConsent,
+  isOptedOut,
+  optIn,
+  optOut,
+  withdrawConsent,
+} from './privacy';
+import { destroy, flush, init, track } from './tracker';
+import { SDK_VERSION } from './version';
 
-// ── Privacy functions ─────────────────────────────────────────────────────────
-// Re-exported from tracker.ts which re-exports them from privacy/
-export {
+const analytics = {
+  init,
+  track,
+  flush,
+  destroy,
   optOut,
   optIn,
   isOptedOut,
   giveConsent,
   withdrawConsent,
-} from './privacy';
+  EventTypes,
+  SDK_VERSION,
+} as const;
 
-// ── Constants ─────────────────────────────────────────────────────────────────
-export { EventTypes } from './events/event-types';
-export { SDK_VERSION } from './version';
+export default analytics;
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 // Everything a consumer might need to type their own code
