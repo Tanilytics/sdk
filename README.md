@@ -46,8 +46,13 @@ analytics.init({
   endpoint: 'https://ingest.example.com/api/v1/events',
 });
 
-analytics.track(analytics.EventTypes.CLICK, {
-  action: 'newsletter_signup',
+analytics.track('audio_downloaded', {
+  audioId: 'aud_123',
+  format: 'mp3',
+  source: 'player',
+});
+
+analytics.track('signup_clicked', {
   plan: 'pro',
 });
 ```
@@ -59,7 +64,7 @@ You can also provide the ingestion endpoint through the `INGESTION_URL` environm
 The current public API for `@analytics-sdk/core` is a default export object with:
 
 - `analytics.init(config)`
-- `analytics.track(eventType, properties?)`
+- `analytics.track(eventName, properties?)`
 - `analytics.flush()`
 - `analytics.destroy()`
 - `analytics.optOut()`
@@ -72,9 +77,20 @@ The current public API for `@analytics-sdk/core` is a default export object with
 
 The package also exports types including `AnalyticsConfig`, `EventType`, `EventProperties`, and `IngestionEvent`.
 
-## Supported Event Types
+## Event Model
 
-Use `EventTypes` rather than raw strings:
+Manual tracking accepts any custom event name:
+
+```ts
+analytics.track('audio_downloaded', {
+  audioId: 'aud_123',
+  format: 'mp3',
+});
+```
+
+These events are sent with `event_type: 'custom'` and a separate `event_name` field.
+
+The SDK also emits fixed internal event types for autocapture and media adapters:
 
 - `PAGE_VIEW`
 - `PAGE_LEAVE`
@@ -87,6 +103,7 @@ Use `EventTypes` rather than raw strings:
 - `MEDIA_PROGRESS`
 - `MEDIA_BUFFER`
 - `MEDIA_COMPLETE`
+- `CUSTOM`
 
 ## Configuration
 

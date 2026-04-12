@@ -18,6 +18,7 @@ describe('core public API', () => {
   it('exposes runtime constants on the default export', () => {
     expect(analytics.EventTypes.PAGE_VIEW).toBe('page_view');
     expect(analytics.EventTypes.CLICK).toBe('click');
+    expect(analytics.EventTypes.CUSTOM).toBe('custom');
     expect(typeof analytics.SDK_VERSION).toBe('string');
   });
 });

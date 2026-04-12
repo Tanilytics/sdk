@@ -12,8 +12,9 @@ analytics.init({
   endpoint: 'https://ingest.example.com/api/v1/events',
 });
 
-analytics.track(analytics.EventTypes.CLICK, {
-  action: 'newsletter_signup',
+analytics.track('audio_downloaded', {
+  audioId: 'aud_123',
+  format: 'mp3',
 });
 ```
 
