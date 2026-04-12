@@ -1,6 +1,6 @@
 {
   "name": "@analytics-sdk/adapter-youtube",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "main": "./dist/index.esm.js",
   "module": "./dist/index.esm.js",
