@@ -116,6 +116,7 @@ interface AnalyticsConfig {
   flushInterval?: number;
   maxBatchSize?: number;
   maxQueueSize?: number;
+  compress?: boolean;
   debug?: boolean;
   requireConsent?: boolean;
   respectDoNotTrack?: boolean;
@@ -136,6 +137,7 @@ Current defaults:
 - `flushInterval: 10000`
 - `maxBatchSize: 100`
 - `maxQueueSize: 1000`
+- `compress: true`
 - `debug: false`
 - `requireConsent: false`
 - `respectDoNotTrack: true`
@@ -175,6 +177,7 @@ Validation rules currently enforced by the SDK include:
 - `flushInterval` must be an integer `>= 500`
 - `maxBatchSize` must be an integer between `1` and `200`
 - `maxQueueSize` must be an integer between `1` and `10000`
+- `compress` must be a boolean
 
 ## Privacy Controls
 

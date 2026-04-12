@@ -12,9 +12,7 @@ interface FormTrackerOptions {
 let _track: TrackFn | null = null;
 let _onSubmit: ((e: SubmitEvent) => void) | null = null;
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Public API
-// ─────────────────────────────────────────────────────────────────────────────
 
 export function attachFormTracker(opts: FormTrackerOptions): void {
   if (_onSubmit !== null) return; // Already attached
@@ -33,9 +31,7 @@ export function detachFormTracker(): void {
   _track = null;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Submit handler
-// ─────────────────────────────────────────────────────────────────────────────
 
 function handleSubmit(event: SubmitEvent): void {
   if (_track === null) return;
@@ -60,9 +56,7 @@ function handleSubmit(event: SubmitEvent): void {
   });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Helpers
-// ─────────────────────────────────────────────────────────────────────────────
 
 function hasPasswordField(form: HTMLFormElement): boolean {
   return form.querySelector('input[type="password"]') !== null;

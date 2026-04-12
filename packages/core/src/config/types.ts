@@ -4,6 +4,7 @@ export interface AnalyticsConfig {
   flushInterval?: number;
   maxBatchSize?: number;
   maxQueueSize?: number;
+  compress?: boolean;
   debug?: boolean;
   requireConsent?: boolean;
   respectDoNotTrack?: boolean;
@@ -16,6 +17,7 @@ export interface ResolvedConfig {
   readonly flushInterval: number;
   readonly maxBatchSize: number;
   readonly maxQueueSize: number;
+  readonly compress: boolean;
   readonly debug: boolean;
   readonly requireConsent: boolean;
   readonly respectDoNotTrack: boolean;

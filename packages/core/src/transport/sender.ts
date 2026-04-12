@@ -5,6 +5,7 @@ import { withRetry } from './retry';
 export interface SenderConfig {
   endpoint: string;
   siteToken: string;
+  compress: boolean;
   debug: boolean;
 }
 
@@ -58,7 +59,7 @@ async function attemptSend(
 
   try {
     const payload = buildPayload(events, visitorId, config.siteToken);
-    const requestBody = await buildRequestBody(payload);
+    const requestBody = await buildRequestBody(payload, config);
 
     response = await fetch(config.endpoint, {
       method: 'POST',
@@ -83,8 +84,19 @@ async function attemptSend(
 
 async function buildRequestBody(
   payload: IngestionPayload,
+  config: Pick<SenderConfig, 'compress'>,
 ): Promise<RequestBody> {
   const json = JSON.stringify(payload);
+
+  if (!config.compress) {
+    return {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: json,
+    };
+  }
+
   const compressedBody = await gzipJson(json);
 
   if (compressedBody === null) {
@@ -124,12 +136,12 @@ async function gzipJson(value: string): Promise<ArrayBuffer | null> {
 function classifyResponse(response: Response): SendResult {
   const status = response.status;
 
-  // ── Success ────────────────────────────────────────────────────────────────
+  // Success
   if (status >= 200 && status < 300) {
     return { ok: true, retryable: false, status };
   }
 
-  // ── Rate limited ───────────────────────────────────────────────────────────
+  // Rate limited
   if (status === 429) {
     return {
       ok: false,
@@ -139,7 +151,7 @@ function classifyResponse(response: Response): SendResult {
     };
   }
 
-  // ── Permanent client errors ────────────────────────────────────────────────
+  // Permanent client errors
   // 4xx means WE sent something wrong — retrying will produce the same error
   if (status >= 400 && status < 500) {
     return {
@@ -150,7 +162,7 @@ function classifyResponse(response: Response): SendResult {
     };
   }
 
-  // ── Transient server errors ────────────────────────────────────────────────
+  // Transient server errors
   // 5xx means the SERVER has a problem — retrying after a delay may succeed
   if (status >= 500) {
     return {

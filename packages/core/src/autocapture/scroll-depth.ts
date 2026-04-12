@@ -18,9 +18,7 @@ let _sentinels: HTMLElement[] = [];
 const _milestonesReached = new Set<Milestone>();
 let _pageLoadTime = 0;
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Public API
-// ─────────────────────────────────────────────────────────────────────────────
 
 export function attachScrollDepthTracker(opts: ScrollDepthOptions): void {
   if (_observer !== null) return; // Already attached
@@ -67,13 +65,11 @@ export function resetScrollDepth(): void {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Sentinel placement
 //
 // Sentinels are invisible elements placed at each milestone depth.
 // IntersectionObserver fires when they enter the viewport.
 // This is far more performant than listening to scroll events.
-// ─────────────────────────────────────────────────────────────────────────────
 
 function placeSentinels(): void {
   const documentHeight = getDocumentHeight();
@@ -112,9 +108,7 @@ function removeSentinels(): void {
   _sentinels = [];
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Intersection handler
-// ─────────────────────────────────────────────────────────────────────────────
 
 function handleIntersection(entries: IntersectionObserverEntry[]): void {
   entries.forEach((entry) => {
@@ -138,9 +132,7 @@ function handleIntersection(entries: IntersectionObserverEntry[]): void {
   });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Helpers
-// ─────────────────────────────────────────────────────────────────────────────
 
 function getDocumentHeight(): number {
   return Math.max(

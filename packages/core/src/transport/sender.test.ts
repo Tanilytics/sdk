@@ -32,6 +32,7 @@ describe('sendBatch', () => {
       {
         endpoint: 'https://api.example.com/ingest',
         siteToken: 'site_token',
+        compress: true,
         debug: false,
       },
       'visitor-1',
@@ -75,6 +76,7 @@ describe('sendBatch', () => {
       {
         endpoint: 'https://api.example.com/ingest',
         siteToken: 'site_token',
+        compress: true,
         debug: false,
       },
       'visitor-1',
@@ -91,5 +93,43 @@ describe('sendBatch', () => {
     expect(new TextDecoder().decode(init.body as ArrayBuffer)).toContain(
       '"site_id":"site_token"',
     );
+  });
+
+  it('sends plain JSON when compression is disabled in config', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(null, { status: 202 }));
+
+    class FakeCompressionStream {
+      public constructor() {
+        throw new Error('CompressionStream should not be used');
+      }
+    }
+
+    vi.stubGlobal(
+      'CompressionStream',
+      FakeCompressionStream as unknown as typeof CompressionStream,
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await sendBatch(
+      [makeEvent('1')],
+      {
+        endpoint: 'https://api.example.com/ingest',
+        siteToken: 'site_token',
+        compress: false,
+        debug: false,
+      },
+      'visitor-1',
+    );
+
+    expect(result).toEqual({ ok: true, retryable: false });
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.headers).toEqual({
+      'Content-Type': 'application/json',
+    });
+    expect(typeof init.body).toBe('string');
+    expect(init.body).toContain('"site_id":"site_token"');
   });
 });

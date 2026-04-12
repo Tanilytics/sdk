@@ -16,9 +16,7 @@ let _visibleSince: number | null = null; // When the page last became visible
 let _onVisibilityChange: (() => void) | null = null;
 let _onPageHide: (() => void) | null = null;
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Public API
-// ─────────────────────────────────────────────────────────────────────────────
 
 export function attachTimeOnPageTracker(opts: TimeOnPageOptions): void {
   if (_onVisibilityChange !== null) return; // Already attached
@@ -69,9 +67,7 @@ export function resetTimeOnPage(): void {
   _visibleSince = document.visibilityState === 'visible' ? Date.now() : null;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Visibility handlers
-// ─────────────────────────────────────────────────────────────────────────────
 
 function handleVisibilityChange(): void {
   if (document.visibilityState === 'hidden') {
@@ -89,9 +85,7 @@ function handlePageHide(): void {
   flushActiveTime();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Time accumulation
-// ─────────────────────────────────────────────────────────────────────────────
 
 function accumulateActiveTime(): void {
   if (_visibleSince === null) return;

@@ -27,6 +27,7 @@ describe('DEFAULT_CONFIG', () => {
   });
 
   it('contains boolean feature flags', () => {
+    expect(typeof DEFAULT_CONFIG.compress).toBe('boolean');
     expect(typeof DEFAULT_CONFIG.debug).toBe('boolean');
     expect(typeof DEFAULT_CONFIG.requireConsent).toBe('boolean');
     expect(typeof DEFAULT_CONFIG.respectDoNotTrack).toBe('boolean');

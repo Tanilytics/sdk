@@ -29,23 +29,19 @@ import {
 import { EventTypes } from './events/event-types';
 import { SDK_VERSION } from './version';
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Module-level singleton
 //
 // The SDK is designed to be initialised once per page.
 // The singleton is stored here at the module level — not on window —
 // so it is scoped to the SDK's own module closure and cannot be
 // tampered with by external code.
-// ─────────────────────────────────────────────────────────────────────────────
 
 let _instance: AnalyticsTracker | null = null;
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Public module-level functions
 //
 // These are what consumers import and call.
 // They are thin wrappers around the singleton instance.
-// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Initialises the analytics SDK.
@@ -121,13 +117,11 @@ export function destroy(): void {
   _instance = null;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // AnalyticsTracker class
 //
 // The orchestrator. Creates and wires all modules together.
 // Consumers never interact with this class directly — they use the
 // module-level functions above.
-// ─────────────────────────────────────────────────────────────────────────────
 
 export class AnalyticsTracker {
   private readonly config: ResolvedConfig;
@@ -136,13 +130,13 @@ export class AnalyticsTracker {
   private isDestroyed = false;
 
   constructor(userConfig: AnalyticsConfig) {
-    // ── Step 1: Validate and resolve config ───────────────────────────────────
+    // Step 1: Validate and resolve config
     // This is the first thing that runs.
     // If config is invalid, the constructor throws immediately
     // and nothing else is initialised.
     this.config = validateAndMergeConfig(userConfig);
 
-    // ── Step 2: Configure privacy ─────────────────────────────────────────────
+    // Step 2: Configure privacy
     // Must happen before any event is built or sent.
     // Copies requireConsent and respectDoNotTrack from config
     // into the privacy module's own state.
@@ -151,16 +145,16 @@ export class AnalyticsTracker {
       respectDoNotTrack: this.config.respectDoNotTrack,
     });
 
-    // ── Step 3: Inject site token into event builder ──────────────────────────
+    // Step 3: Inject site token into event builder
     // The event builder stamps this onto every event.
     // Done here so buildEvent() does not need the token as an argument.
     configureSiteToken(this.config.siteToken);
 
-    // ── Step 4: Initialise session manager ────────────────────────────────────
+    // Step 4: Initialise session manager
     // Loads existing session from sessionStorage or creates a fresh one.
     this.session = new SessionManager();
 
-    // ── Step 5: Initialise event queue ────────────────────────────────────────
+    // Step 5: Initialise event queue
     // Wires the flush callback to the transport sender.
     // Starts the flush timer and attaches unload listeners.
     const queueConfig: QueueConfig = {
@@ -170,12 +164,13 @@ export class AnalyticsTracker {
       senderConfig: {
         endpoint: this.config.endpoint,
         siteToken: this.config.siteToken,
+        compress: this.config.compress,
         debug: this.config.debug,
       },
     };
     this.queue = new EventQueue(queueConfig);
 
-    // ── Step 6: Start autocapture ─────────────────────────────────────────────
+    // Step 6: Start autocapture
     // Must happen LAST — all modules must be ready before autocapture
     // starts firing events into them.
     const { pageViews, clicks, formSubmissions, scrollDepth, timeOnPage } =
@@ -250,7 +245,7 @@ export class AnalyticsTracker {
     }
   }
 
-  // ── Public methods ───────────────────────────────────────────────────────────
+  // Public methods
 
   /**
    * The core operation — fire a custom tracking event.

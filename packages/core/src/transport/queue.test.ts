@@ -49,6 +49,7 @@ describe('EventQueue', () => {
       senderConfig: {
         endpoint: 'https://api.example.com/ingest',
         siteToken: 'site_token',
+        compress: true,
         debug: false,
       },
     });
@@ -89,6 +90,7 @@ describe('EventQueue', () => {
       senderConfig: {
         endpoint: 'https://api.example.com/ingest',
         siteToken: 'site_token',
+        compress: true,
         debug: false,
       },
     });
