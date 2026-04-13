@@ -159,5 +159,46 @@ describe('validate', () => {
         ),
       ).toThrow(/autocapture\.pageViews must be a boolean/);
     });
+
+    it('accepts adapters with the expected runtime contract', () => {
+      expect(() =>
+        validate(
+          makeValidConfig({
+            adapters: [
+              {
+                name: 'youtube',
+                attach: () => undefined,
+                detach: () => undefined,
+              },
+            ],
+          }),
+        ),
+      ).not.toThrow();
+    });
+
+    it('throws when adapters is not an array', () => {
+      expect(() =>
+        validate(
+          makeValidConfig({
+            adapters: 'youtube' as unknown as AnalyticsConfig['adapters'],
+          }),
+        ),
+      ).toThrow(/adapters must be an array/);
+    });
+
+    it('throws when an adapter is missing attach or detach', () => {
+      expect(() =>
+        validate(
+          makeValidConfig({
+            adapters: [
+              {
+                name: 'youtube',
+                attach: () => undefined,
+              } as unknown as NonNullable<AnalyticsConfig['adapters']>[number],
+            ],
+          }),
+        ),
+      ).toThrow(/adapters\[0\]\.detach must be a function/);
+    });
   });
 });

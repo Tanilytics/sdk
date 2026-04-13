@@ -137,20 +137,63 @@ export function validate(config: AnalyticsConfig): void {
   // autocapture
   if (config.autocapture !== undefined) {
     if (typeof config.autocapture === 'boolean') {
-      return;
-    }
+      // valid
+    } else {
+      if (
+        typeof config.autocapture !== 'object' ||
+        config.autocapture === null
+      ) {
+        throw new Error(
+          `[AnalyticsSDK] autocapture must be a boolean or an object.\n` +
+            `Received: ${config.autocapture}`,
+        );
+      }
 
-    if (typeof config.autocapture !== 'object' || config.autocapture === null) {
+      for (const [key, value] of Object.entries(config.autocapture ?? {})) {
+        if (typeof value !== 'boolean') {
+          throw new Error(
+            `[AnalyticsSDK] autocapture.${key} must be a boolean.\n` +
+              `Received: ${value}`,
+          );
+        }
+      }
+    }
+  }
+
+  if (config.adapters !== undefined) {
+    if (!Array.isArray(config.adapters)) {
       throw new Error(
-        `[AnalyticsSDK] autocapture must be a boolean or an object.\n` +
-          `Received: ${config.autocapture}`,
+        `[AnalyticsSDK] adapters must be an array.\n` +
+          `Received: ${config.adapters}`,
       );
     }
-    for (const [key, value] of Object.entries(config.autocapture ?? {})) {
-      if (typeof value !== 'boolean') {
+
+    for (const [index, adapter] of config.adapters.entries()) {
+      if (typeof adapter !== 'object' || adapter === null) {
         throw new Error(
-          `[AnalyticsSDK] autocapture.${key} must be a boolean.\n` +
-            `Received: ${value}`,
+          `[AnalyticsSDK] adapters[${index}] must be an object.\n` +
+            `Received: ${adapter}`,
+        );
+      }
+
+      if (
+        typeof adapter.name !== 'string' ||
+        adapter.name.trim().length === 0
+      ) {
+        throw new Error(
+          `[AnalyticsSDK] adapters[${index}].name must be a non-empty string.`,
+        );
+      }
+
+      if (typeof adapter.attach !== 'function') {
+        throw new Error(
+          `[AnalyticsSDK] adapters[${index}].attach must be a function.`,
+        );
+      }
+
+      if (typeof adapter.detach !== 'function') {
+        throw new Error(
+          `[AnalyticsSDK] adapters[${index}].detach must be a function.`,
         );
       }
     }

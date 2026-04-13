@@ -1,3 +1,5 @@
+import type { MediaAdapterInterface } from '../types';
+
 export interface AnalyticsConfig {
   siteToken: string;
   endpoint?: string;
@@ -9,6 +11,7 @@ export interface AnalyticsConfig {
   requireConsent?: boolean;
   respectDoNotTrack?: boolean;
   autocapture?: AutocaptureOption;
+  adapters?: readonly MediaAdapterInterface[];
 }
 
 export interface ResolvedConfig {

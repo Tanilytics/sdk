@@ -8,12 +8,7 @@ export type InternalEventType =
   | 'click'
   | 'form_submit'
   | 'scroll'
-  | 'media_play'
-  | 'media_pause'
-  | 'media_seek'
-  | 'media_progress'
-  | 'media_buffer'
-  | 'media_complete';
+  | MediaEventType;
 
 /**
  * Event types accepted by the ingestion service.
@@ -27,6 +22,17 @@ export type EventType = InternalEventType | 'custom';
  * The ingestion schema allows an object without further constraints.
  */
 export type EventProperties = Record<string, unknown>;
+
+/**
+ * Internal media event types that external media adapters are allowed to emit.
+ */
+export type MediaEventType =
+  | 'media_play'
+  | 'media_pause'
+  | 'media_seek'
+  | 'media_progress'
+  | 'media_buffer'
+  | 'media_complete';
 
 export interface SessionContext {
   screen_width: number;
@@ -69,11 +75,19 @@ export interface IngestionPayload {
 export type TrackingEvent = IngestionEvent;
 
 /**
+ * Minimal API surface the core tracker exposes to media adapters.
+ * Adapter events flow through the normal privacy, session, and queue pipeline.
+ */
+export interface MediaAdapterApi {
+  trackMedia(eventType: MediaEventType, properties?: EventProperties): void;
+}
+
+/**
  * Interface every media adapter must implement.
  * Allows the core SDK to treat all adapters identically.
  */
 export interface MediaAdapterInterface {
   readonly name: string;
-  attach(): void;
+  attach(api: MediaAdapterApi): void;
   detach(): void;
 }

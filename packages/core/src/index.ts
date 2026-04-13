@@ -40,6 +40,8 @@ export type {
   IngestionEvent,
   IngestionPayload,
   SessionContext,
+  MediaAdapterApi,
   MediaAdapterInterface,
+  MediaEventType,
 } from './types';
 export type { AnalyticsConfig } from './config/types';
