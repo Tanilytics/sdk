@@ -136,11 +136,11 @@ jobs:
       #   env:
       #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # - name: Publish @analytics-sdk/adapter-youtube
-      #   working-directory: packages/media-adapters/youtube
-      #   run: npm publish --access public
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish @analytics-sdk/adapter-youtube
+        working-directory: packages/media-adapters/youtube
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # ── Commit version bumps ──────────────────────────────────────────────────
       - name: Commit and tag
