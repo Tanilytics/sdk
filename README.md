@@ -7,9 +7,9 @@ Tanilytics Analytics SDK is a TypeScript monorepo for a browser analytics client
 - `@analytics-sdk/core`: browser analytics SDK
 - `@analytics-sdk/adapter-videojs`: Video.js adapter package scaffold
 - `@analytics-sdk/adapter-hlsjs`: hls.js adapter package scaffold
-- `@analytics-sdk/adapter-youtube`: YouTube adapter package scaffold
+- `@analytics-sdk/adapter-youtube`: YouTube iframe adapter for the core SDK
 
-Today, the core package contains the real SDK implementation. The media adapter packages are present in the workspace, but are still minimal scaffolds.
+Today, the core package contains the main SDK implementation. The YouTube adapter is usable as a core extension, while the other media adapter packages are still minimal scaffolds.
 
 ## Core SDK Features
 
@@ -77,6 +77,25 @@ The current public API for `@analytics-sdk/core` is a default export object with
 
 The package also exports types including `AnalyticsConfig`, `EventType`, `EventProperties`, and `IngestionEvent`.
 
+`AnalyticsConfig` also supports `adapters?: readonly MediaAdapterInterface[]` for media extensions.
+
+## Media Adapters
+
+Adapters are registered through `analytics.init()` and emit the core media event types through the same privacy, session, and queue pipeline.
+
+```ts
+import analytics from '@analytics-sdk/core';
+import { youtubeAdapter } from '@analytics-sdk/adapter-youtube';
+
+analytics.init({
+  siteToken: 'sk_live_abc12345',
+  endpoint: 'https://ingest.example.com/api/v1/events',
+  adapters: [youtubeAdapter()],
+});
+```
+
+`youtubeAdapter()` auto-detects supported YouTube embed iframes already on the page. Pass `youtubeAdapter({ iframe })` to scope tracking to one embed.
+
 ## Event Model
 
 Manual tracking accepts any custom event name:
@@ -129,6 +148,7 @@ interface AnalyticsConfig {
         clicks?: boolean;
         formSubmissions?: boolean;
       };
+  adapters?: readonly MediaAdapterInterface[];
 }
 ```
 
@@ -178,6 +198,7 @@ Validation rules currently enforced by the SDK include:
 - `maxBatchSize` must be an integer between `1` and `200`
 - `maxQueueSize` must be an integer between `1` and `10000`
 - `compress` must be a boolean
+- `adapters` must be an array of objects with `name`, `attach(api)`, and `detach()`
 
 ## Privacy Controls
 

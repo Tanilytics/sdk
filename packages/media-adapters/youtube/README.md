@@ -1,11 +1,66 @@
-# youtube
+# @analytics-sdk/adapter-youtube
 
-This library was generated with [Nx](https://nx.dev).
+YouTube iframe adapter for `@analytics-sdk/core`.
 
-## Building
+## Installation
 
-Run `nx build youtube` to build the library.
+```bash
+npm install @analytics-sdk/core @analytics-sdk/adapter-youtube
+```
 
-## Running unit tests
+## Usage
 
-Run `nx test youtube` to execute the unit tests via [Vitest](https://vitest.dev/).
+Your iframe must use a YouTube embed URL with both `enablejsapi=1` and `origin`.
+
+```html
+<iframe
+  id="hero-video"
+  src="https://www.youtube.com/embed/abc123xyz89?enablejsapi=1&origin=https://example.com"
+  allow="autoplay; fullscreen"
+></iframe>
+```
+
+```ts
+import analytics from '@analytics-sdk/core';
+import { youtubeAdapter } from '@analytics-sdk/adapter-youtube';
+
+analytics.init({
+  siteToken: 'sk_live_abc12345',
+  endpoint: 'https://ingest.example.com/api/v1/events',
+  adapters: [youtubeAdapter()],
+});
+```
+
+`youtubeAdapter()` automatically discovers supported YouTube embed iframes already on the page. If you want to target one specific iframe, pass it explicitly:
+
+```ts
+const iframe = document.querySelector<HTMLIFrameElement>('#hero-video');
+
+if (iframe !== null) {
+  analytics.init({
+    siteToken: 'sk_live_abc12345',
+    endpoint: 'https://ingest.example.com/api/v1/events',
+    adapters: [youtubeAdapter({ iframe })],
+  });
+}
+```
+
+The adapter emits the core media event types:
+
+- `media_play`
+- `media_pause`
+- `media_seek`
+- `media_progress`
+- `media_buffer`
+- `media_complete`
+
+Progress milestones default to `25`, `50`, `75`, and `90` percent and can be customised:
+
+```ts
+youtubeAdapter({
+  iframe,
+  progressPercentages: [10, 25, 50, 75, 95],
+  progressPollMs: 1000,
+  seekThresholdSeconds: 2,
+});
+```
