@@ -162,7 +162,7 @@ export function validate(config: AnalyticsConfig): void {
 
   if (config.adapters !== undefined) {
     if (!Array.isArray(config.adapters)) {
-      throw new Error(
+      throw new TypeError(
         `[AnalyticsSDK] adapters must be an array.\n` +
           `Received: ${config.adapters}`,
       );
@@ -186,13 +186,13 @@ export function validate(config: AnalyticsConfig): void {
       }
 
       if (typeof adapter.attach !== 'function') {
-        throw new Error(
+        throw new TypeError(
           `[AnalyticsSDK] adapters[${index}].attach must be a function.`,
         );
       }
 
       if (typeof adapter.detach !== 'function') {
-        throw new Error(
+        throw new TypeError(
           `[AnalyticsSDK] adapters[${index}].detach must be a function.`,
         );
       }
