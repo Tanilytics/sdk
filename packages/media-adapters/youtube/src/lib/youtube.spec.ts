@@ -148,6 +148,38 @@ async function flushMicrotasks(): Promise<void> {
   await Promise.resolve();
 }
 
+async function attachSingleIframeAdapter({
+  configurePlayer,
+}: {
+  configurePlayer?: (playerState: MockPlayerState) => void;
+} = {}): Promise<{
+  adapter: ReturnType<typeof youtubeAdapter>;
+  iframe: HTMLIFrameElement;
+  playerState: MockPlayerState;
+  trackMedia: ReturnType<typeof vi.fn>;
+  youtubeApi: ReturnType<typeof installYouTubeApi>;
+}> {
+  const iframe = createIframe();
+  const playerState = createMockPlayer(iframe);
+
+  configurePlayer?.(playerState);
+
+  const youtubeApi = installYouTubeApi(new Map([[iframe, playerState.player]]));
+  const trackMedia = vi.fn();
+  const adapter = youtubeAdapter({ iframe });
+
+  adapter.attach({ trackMedia });
+  await flushMicrotasks();
+
+  return {
+    adapter,
+    iframe,
+    playerState,
+    trackMedia,
+    youtubeApi,
+  };
+}
+
 afterEach(() => {
   vi.useRealTimers();
   vi.restoreAllMocks();
@@ -225,16 +257,8 @@ describe('youtubeAdapter', () => {
   });
 
   it('maps YouTube playback state changes to media events', async () => {
-    const iframe = createIframe();
-    const playerState = createMockPlayer(iframe);
-    const youtubeApi = installYouTubeApi(
-      new Map([[iframe, playerState.player]]),
-    );
-    const trackMedia = vi.fn();
-    const adapter = youtubeAdapter({ iframe });
-
-    adapter.attach({ trackMedia });
-    await flushMicrotasks();
+    const { iframe, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter();
 
     youtubeApi.emitReady(iframe);
     youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
@@ -256,15 +280,8 @@ describe('youtubeAdapter', () => {
   });
 
   it('emits media_play when playback starts after initial buffering', async () => {
-    const iframe = createIframe();
-    const playerState = createMockPlayer(iframe);
-    const youtubeApi = installYouTubeApi(
-      new Map([[iframe, playerState.player]]),
-    );
-    const trackMedia = vi.fn();
-
-    youtubeAdapter({ iframe }).attach({ trackMedia });
-    await flushMicrotasks();
+    const { iframe, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter();
 
     youtubeApi.emitStateChange(iframe, youtubeApi.states.BUFFERING);
     youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
@@ -275,15 +292,8 @@ describe('youtubeAdapter', () => {
   });
 
   it('emits media_play when playback resumes from pause through buffering', async () => {
-    const iframe = createIframe();
-    const playerState = createMockPlayer(iframe);
-    const youtubeApi = installYouTubeApi(
-      new Map([[iframe, playerState.player]]),
-    );
-    const trackMedia = vi.fn();
-
-    youtubeAdapter({ iframe }).attach({ trackMedia });
-    await flushMicrotasks();
+    const { iframe, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter();
 
     youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
     youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
@@ -298,15 +308,8 @@ describe('youtubeAdapter', () => {
   });
 
   it('does not emit media_buffer when buffering occurs before first play', async () => {
-    const iframe = createIframe();
-    const playerState = createMockPlayer(iframe);
-    const youtubeApi = installYouTubeApi(
-      new Map([[iframe, playerState.player]]),
-    );
-    const trackMedia = vi.fn();
-
-    youtubeAdapter({ iframe }).attach({ trackMedia });
-    await flushMicrotasks();
+    const { iframe, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter();
 
     youtubeApi.emitStateChange(iframe, youtubeApi.states.BUFFERING);
 
@@ -314,15 +317,8 @@ describe('youtubeAdapter', () => {
   });
 
   it('does not emit media_buffer when buffering occurs while paused', async () => {
-    const iframe = createIframe();
-    const playerState = createMockPlayer(iframe);
-    const youtubeApi = installYouTubeApi(
-      new Map([[iframe, playerState.player]]),
-    );
-    const trackMedia = vi.fn();
-
-    youtubeAdapter({ iframe }).attach({ trackMedia });
-    await flushMicrotasks();
+    const { iframe, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter();
 
     youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
     youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
@@ -375,17 +371,12 @@ describe('youtubeAdapter', () => {
   it('emits milestone progress and seek events while playing', async () => {
     vi.useFakeTimers();
 
-    const iframe = createIframe();
-    const playerState = createMockPlayer(iframe);
-    playerState.setDuration(4);
-    const youtubeApi = installYouTubeApi(
-      new Map([[iframe, playerState.player]]),
-    );
-    const trackMedia = vi.fn();
-    const adapter = youtubeAdapter({ iframe });
-
-    adapter.attach({ trackMedia });
-    await flushMicrotasks();
+    const { iframe, playerState, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter({
+        configurePlayer(player) {
+          player.setDuration(4);
+        },
+      });
 
     youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
 
@@ -418,16 +409,8 @@ describe('youtubeAdapter', () => {
   });
 
   it('emits media_complete once when playback ends', async () => {
-    const iframe = createIframe();
-    const playerState = createMockPlayer(iframe);
-    const youtubeApi = installYouTubeApi(
-      new Map([[iframe, playerState.player]]),
-    );
-    const trackMedia = vi.fn();
-    const adapter = youtubeAdapter({ iframe });
-
-    adapter.attach({ trackMedia });
-    await flushMicrotasks();
+    const { iframe, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter();
 
     youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
     youtubeApi.emitStateChange(iframe, youtubeApi.states.ENDED);
@@ -441,16 +424,9 @@ describe('youtubeAdapter', () => {
   });
 
   it('ignores late callbacks after detach and preserves detected iframes', async () => {
-    const iframe = createIframe();
-    const playerState = createMockPlayer(iframe);
-    const youtubeApi = installYouTubeApi(
-      new Map([[iframe, playerState.player]]),
-    );
-    const trackMedia = vi.fn();
-    const adapter = youtubeAdapter();
+    const { adapter, iframe, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter();
 
-    adapter.attach({ trackMedia });
-    await flushMicrotasks();
     adapter.detach();
 
     youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
