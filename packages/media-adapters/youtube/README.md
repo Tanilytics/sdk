@@ -61,6 +61,9 @@ youtubeAdapter({
   iframe,
   progressPercentages: [10, 25, 50, 75, 95],
   progressPollMs: 1000,
-  seekThresholdSeconds: 2,
+  seekThresholdSeconds: 10,
 });
 ```
+
+`seekThresholdSeconds` controls how large a jump must be before the adapter emits
+`media_seek`.
