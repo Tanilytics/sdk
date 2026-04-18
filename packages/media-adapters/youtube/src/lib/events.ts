@@ -227,9 +227,7 @@ function handleInactiveState(
     clearBufferingState(context);
 
     if (context.hasStartedPlayback && !context.hasCompletedPlayback) {
-      if (context.pendingPauseFromTime === null) {
-        context.pendingPauseFromTime = previousCurrentTime;
-      }
+      context.pendingPauseFromTime ??= previousCurrentTime;
 
       context.pendingPauseTime =
         currentSnapshot.currentTime ??
