@@ -85,6 +85,7 @@ function handleStateChange({
   if (nextState === youtubeApi.PlayerState.BUFFERING) {
     handleBufferingState(
       adapterApi,
+      config,
       context,
       youtubeApi,
       currentSnapshot,
@@ -117,12 +118,20 @@ function handleStateChange({
 
 function handleBufferingState(
   adapterApi: YouTubeMediaAdapterApi,
+  config: ResolvedYouTubeAdapterOptions,
   context: PlaybackContext,
   youtubeApi: YouTubeIframeApi,
   currentSnapshot: VideoSnapshot,
   nextState: number,
 ): void {
   stopProgressPolling(context);
+
+  if (
+    context.lastPlayerState === youtubeApi.PlayerState.PAUSED &&
+    !shouldDeferPendingPauseForSeek(config, context)
+  ) {
+    emitPendingPause(adapterApi, context);
+  }
 
   if (context.lastPlayerState !== youtubeApi.PlayerState.BUFFERING) {
     context.stateBeforeBuffering = context.lastPlayerState;
@@ -157,24 +166,43 @@ function handlePlayingState(
   nextState: number,
 ): void {
   resetLifecycleForReplay(context, currentSnapshot);
-  emitSeekAfterBuffering(
+  const didSeekAfterBuffering = emitSeekAfterBuffering(
     adapterApi,
     config,
     context,
     youtubeApi,
     currentSnapshot,
   );
-  emitSeekOnResume(adapterApi, config, context, youtubeApi, currentSnapshot);
+  const didSeekOnResume = emitSeekOnResume(
+    adapterApi,
+    config,
+    context,
+    youtubeApi,
+    currentSnapshot,
+  );
+  const didEmitSeek = didSeekAfterBuffering || didSeekOnResume;
 
   const resumedFromBuffer =
     context.lastPlayerState === youtubeApi.PlayerState.BUFFERING &&
     context.stateBeforeBuffering === youtubeApi.PlayerState.PLAYING;
+  const resumedFromPause =
+    context.lastPlayerState === youtubeApi.PlayerState.PAUSED;
+  const resumedFromBufferedPause =
+    context.lastPlayerState === youtubeApi.PlayerState.BUFFERING &&
+    context.stateBeforeBuffering === youtubeApi.PlayerState.PAUSED;
 
   clearBufferingState(context);
   context.hasStartedPlayback = true;
   context.hasCompletedPlayback = false;
 
-  if (!resumedFromBuffer) {
+  if (resumedFromPause || resumedFromBufferedPause) {
+    if (didEmitSeek) {
+      clearPendingPause(context);
+    } else {
+      emitPendingPause(adapterApi, context);
+      emit(adapterApi, context, 'media_play');
+    }
+  } else if (!resumedFromBuffer) {
     emit(adapterApi, context, 'media_play');
   }
 
@@ -190,6 +218,8 @@ function handleInactiveState(
   currentSnapshot: VideoSnapshot,
   nextState: number,
 ): void {
+  const previousCurrentTime = context.lastCurrentTime;
+
   stopProgressPolling(context);
   updateSamplingBaseline(context, currentSnapshot.currentTime);
 
@@ -197,11 +227,19 @@ function handleInactiveState(
     clearBufferingState(context);
 
     if (context.hasStartedPlayback && !context.hasCompletedPlayback) {
-      emit(adapterApi, context, 'media_pause');
+      if (context.pendingPauseFromTime === null) {
+        context.pendingPauseFromTime = previousCurrentTime;
+      }
+
+      context.pendingPauseTime =
+        currentSnapshot.currentTime ??
+        context.pendingPauseTime ??
+        previousCurrentTime;
     }
   }
 
   if (nextState === youtubeApi.PlayerState.ENDED) {
+    emitPendingPause(adapterApi, context);
     clearBufferingState(context);
 
     if (!context.hasCompletedPlayback) {
@@ -248,23 +286,27 @@ function emitSeekOnResume(
   context: PlaybackContext,
   youtubeApi: YouTubeIframeApi,
   currentSnapshot: VideoSnapshot,
-): void {
+): boolean {
+  const resumedFromPause =
+    context.lastPlayerState === youtubeApi.PlayerState.PAUSED;
+  const resumedFromBufferedPause =
+    context.lastPlayerState === youtubeApi.PlayerState.BUFFERING &&
+    context.stateBeforeBuffering === youtubeApi.PlayerState.PAUSED;
+  const pauseFromTime = context.pendingPauseFromTime ?? context.lastCurrentTime;
+
   if (
-    context.lastPlayerState !== youtubeApi.PlayerState.PAUSED ||
-    context.lastCurrentTime === null ||
+    (!resumedFromPause && !resumedFromBufferedPause) ||
+    pauseFromTime === null ||
     currentSnapshot.currentTime === undefined ||
-    Math.abs(currentSnapshot.currentTime - context.lastCurrentTime) <
+    Math.abs(currentSnapshot.currentTime - pauseFromTime) <
       config.seekThresholdSeconds
   ) {
-    return;
+    return false;
   }
 
-  emitSeek(
-    adapterApi,
-    context,
-    context.lastCurrentTime,
-    currentSnapshot.currentTime,
-  );
+  emitSeek(adapterApi, context, pauseFromTime, currentSnapshot.currentTime);
+
+  return true;
 }
 
 function emitSeekAfterBuffering(
@@ -273,7 +315,7 @@ function emitSeekAfterBuffering(
   context: PlaybackContext,
   youtubeApi: YouTubeIframeApi,
   currentSnapshot: VideoSnapshot,
-): void {
+): boolean {
   if (
     context.lastPlayerState !== youtubeApi.PlayerState.BUFFERING ||
     context.stateBeforeBuffering !== youtubeApi.PlayerState.PLAYING ||
@@ -282,7 +324,7 @@ function emitSeekAfterBuffering(
     Math.abs(currentSnapshot.currentTime - context.bufferStartTime) <
       config.seekThresholdSeconds
   ) {
-    return;
+    return false;
   }
 
   emitSeek(
@@ -291,12 +333,51 @@ function emitSeekAfterBuffering(
     context.bufferStartTime,
     currentSnapshot.currentTime,
   );
+
+  return true;
 }
 
 function clearBufferingState(context: PlaybackContext): void {
   context.bufferStartTime = null;
   context.isBuffering = false;
   context.stateBeforeBuffering = null;
+}
+
+function emitPendingPause(
+  adapterApi: YouTubeMediaAdapterApi,
+  context: PlaybackContext,
+): void {
+  if (context.pendingPauseTime === null) {
+    return;
+  }
+
+  emit(adapterApi, context, 'media_pause', {
+    current_time: context.pendingPauseTime,
+  });
+  context.pendingPauseFromTime = null;
+  context.pendingPauseTime = null;
+}
+
+function clearPendingPause(context: PlaybackContext): void {
+  context.pendingPauseFromTime = null;
+  context.pendingPauseTime = null;
+}
+
+function shouldDeferPendingPauseForSeek(
+  config: ResolvedYouTubeAdapterOptions,
+  context: PlaybackContext,
+): boolean {
+  if (
+    context.pendingPauseFromTime === null ||
+    context.pendingPauseTime === null
+  ) {
+    return false;
+  }
+
+  return (
+    Math.abs(context.pendingPauseTime - context.pendingPauseFromTime) >=
+    config.seekThresholdSeconds
+  );
 }
 
 function startProgressPolling(

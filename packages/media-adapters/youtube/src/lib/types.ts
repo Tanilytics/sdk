@@ -65,6 +65,8 @@ export interface PlaybackContext {
   player: YouTubePlayer | null;
   pollTimer: number | null;
   bufferStartTime: number | null;
+  pendingPauseFromTime: number | null;
+  pendingPauseTime: number | null;
   lastCurrentTime: number | null;
   lastPlayerState: number | null;
   stateBeforeBuffering: number | null;

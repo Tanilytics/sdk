@@ -8,6 +8,8 @@ export function createPlaybackContext(
     player: null,
     pollTimer: null,
     bufferStartTime: null,
+    pendingPauseFromTime: null,
+    pendingPauseTime: null,
     lastCurrentTime: null,
     lastPlayerState: null,
     stateBeforeBuffering: null,
@@ -45,6 +47,8 @@ export function resetVideoLifecycle(context: PlaybackContext): void {
 export function resetPlaybackState(context: PlaybackContext): void {
   resetVideoLifecycle(context);
   context.bufferStartTime = null;
+  context.pendingPauseFromTime = null;
+  context.pendingPauseTime = null;
   context.lastCurrentTime = null;
   context.lastPlayerState = null;
   context.stateBeforeBuffering = null;

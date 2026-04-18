@@ -266,12 +266,10 @@ describe('youtubeAdapter', () => {
     youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
     youtubeApi.emitStateChange(iframe, youtubeApi.states.BUFFERING);
     youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
-    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
 
     expect(trackMedia.mock.calls.map(([eventType]) => eventType)).toEqual([
       'media_play',
       'media_buffer',
-      'media_pause',
     ]);
     expect(trackMedia.mock.calls[0]?.[1]).toMatchObject({
       provider: 'youtube',
@@ -300,6 +298,21 @@ describe('youtubeAdapter', () => {
     youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
     youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
     youtubeApi.emitStateChange(iframe, youtubeApi.states.BUFFERING);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    expect(trackMedia.mock.calls.map(([eventType]) => eventType)).toEqual([
+      'media_play',
+      'media_pause',
+      'media_play',
+    ]);
+  });
+
+  it('emits media_pause before media_play when playback resumes without seeking', async () => {
+    const { iframe, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter();
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
     youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
 
     expect(trackMedia.mock.calls.map(([eventType]) => eventType)).toEqual([
@@ -546,6 +559,80 @@ describe('youtubeAdapter', () => {
       delta_seconds: 3,
       from_time: 0,
       to_time: 3,
+    });
+  });
+
+  it('emits media_seek without transient pause or play for keyboard-style jumps', async () => {
+    const { iframe, playerState, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter({
+        adapterOptions: { seekThresholdSeconds: 10 },
+      });
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+    playerState.setCurrentTime(10);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    expect(trackMedia.mock.calls.map(([eventType]) => eventType)).toEqual([
+      'media_play',
+      'media_seek',
+    ]);
+    expect(trackMedia.mock.calls[1]?.[1]).toMatchObject({
+      current_time: 10,
+      delta_seconds: 10,
+      from_time: 0,
+      to_time: 10,
+    });
+  });
+
+  it('emits media_seek for repeated paused states during keyboard-style jumps', async () => {
+    const { iframe, playerState, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter({
+        adapterOptions: { seekThresholdSeconds: 10 },
+      });
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+    playerState.setCurrentTime(10.6);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
+    playerState.setCurrentTime(10.4);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    expect(trackMedia.mock.calls.map(([eventType]) => eventType)).toEqual([
+      'media_play',
+      'media_seek',
+    ]);
+    expect(trackMedia.mock.calls[1]?.[1]).toMatchObject({
+      current_time: 10.4,
+      delta_seconds: 10.4,
+      from_time: 0,
+      to_time: 10.4,
+    });
+  });
+
+  it('emits media_seek for paused buffering keyboard jumps without duplicate pauses', async () => {
+    const { iframe, playerState, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter({
+        adapterOptions: { seekThresholdSeconds: 10 },
+      });
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+    playerState.setCurrentTime(10.7);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.BUFFERING);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
+    playerState.setCurrentTime(10.5);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    expect(trackMedia.mock.calls.map(([eventType]) => eventType)).toEqual([
+      'media_play',
+      'media_seek',
+    ]);
+    expect(trackMedia.mock.calls[1]?.[1]).toMatchObject({
+      current_time: 10.5,
+      delta_seconds: 10.5,
+      from_time: 0,
+      to_time: 10.5,
     });
   });
 
