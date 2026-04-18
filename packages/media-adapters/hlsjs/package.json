@@ -31,8 +31,5 @@
   },
   "devDependencies": {
     "vitest": "^4.0.9"
-  },
-  "dependencies": {
-    "vitest": "^4.0.9"
   }
 }

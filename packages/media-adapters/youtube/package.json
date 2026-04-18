@@ -36,8 +36,5 @@
   "devDependencies": {
     "@analytics-sdk/core": "^0.3.1",
     "vitest": "^4.0.9"
-  },
-  "dependencies": {
-    "vitest": "^4.0.9"
   }
 }
