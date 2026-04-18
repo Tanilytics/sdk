@@ -108,6 +108,32 @@ jobs:
             fi
           done
 
+          # Keep internal package ranges aligned with the release version.
+          NEW_VERSION="$NEW" node <<'EOF'
+          const fs = require('node:fs');
+
+          const newVersion = process.env.NEW_VERSION;
+          const youtubePackageJsonPath = 'packages/media-adapters/youtube/package.json';
+          const youtubePackageJson = JSON.parse(
+            fs.readFileSync(youtubePackageJsonPath, 'utf8'),
+          );
+
+          youtubePackageJson.peerDependencies = {
+            ...youtubePackageJson.peerDependencies,
+            '@analytics-sdk/core': `^${newVersion}`,
+          };
+
+          youtubePackageJson.devDependencies = {
+            ...youtubePackageJson.devDependencies,
+            '@analytics-sdk/core': `^${newVersion}`,
+          };
+
+          fs.writeFileSync(
+            youtubePackageJsonPath,
+            `${JSON.stringify(youtubePackageJson, null, 2)}\n`,
+          );
+          EOF
+
           # Update version.ts so the SDK reports its own version correctly
           echo "// Updated automatically by the release pipeline — do not edit manually" > packages/core/src/version.ts
           echo "export const SDK_VERSION = '$NEW';" >> packages/core/src/version.ts
