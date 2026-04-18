@@ -375,7 +375,9 @@ describe('youtubeAdapter', () => {
     );
     const firstPlayer = createMockPlayer(firstIframe);
     const secondPlayer = createMockPlayer(secondIframe);
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const warnSpy = vi
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
     const youtubeApi = installYouTubeApi(
       new Map([
         [firstIframe, firstPlayer.player],
