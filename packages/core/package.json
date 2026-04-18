@@ -18,6 +18,7 @@
     "dist",
     "!**/*.tsbuildinfo"
   ],
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Tanilytics/analytics-sdk.git",
@@ -30,9 +31,6 @@
     ]
   },
   "devDependencies": {
-    "vitest": "^4.0.9"
-  },
-  "dependencies": {
     "vitest": "^4.0.9"
   }
 }
