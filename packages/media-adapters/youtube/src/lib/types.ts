@@ -64,6 +64,7 @@ export interface PlaybackContext {
   iframe: HTMLIFrameElement;
   player: YouTubePlayer | null;
   pollTimer: number | null;
+  bufferStartTime: number | null;
   lastCurrentTime: number | null;
   lastPlayerState: number | null;
   stateBeforeBuffering: number | null;

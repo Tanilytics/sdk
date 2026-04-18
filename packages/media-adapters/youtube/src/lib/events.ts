@@ -128,6 +128,14 @@ function handleBufferingState(
     context.stateBeforeBuffering = context.lastPlayerState;
   }
 
+  if (
+    context.stateBeforeBuffering === youtubeApi.PlayerState.PLAYING &&
+    context.bufferStartTime === null
+  ) {
+    context.bufferStartTime =
+      context.lastCurrentTime ?? currentSnapshot.currentTime ?? null;
+  }
+
   if (shouldEmitBufferEvent(context, youtubeApi)) {
     context.isBuffering = true;
     emit(adapterApi, context, 'media_buffer', {
@@ -149,6 +157,13 @@ function handlePlayingState(
   nextState: number,
 ): void {
   resetLifecycleForReplay(context, currentSnapshot);
+  emitSeekAfterBuffering(
+    adapterApi,
+    config,
+    context,
+    youtubeApi,
+    currentSnapshot,
+  );
   emitSeekOnResume(adapterApi, config, context, youtubeApi, currentSnapshot);
 
   const resumedFromBuffer =
@@ -238,7 +253,7 @@ function emitSeekOnResume(
     context.lastPlayerState !== youtubeApi.PlayerState.PAUSED ||
     context.lastCurrentTime === null ||
     currentSnapshot.currentTime === undefined ||
-    Math.abs(currentSnapshot.currentTime - context.lastCurrentTime) <=
+    Math.abs(currentSnapshot.currentTime - context.lastCurrentTime) <
       config.seekThresholdSeconds
   ) {
     return;
@@ -252,7 +267,34 @@ function emitSeekOnResume(
   );
 }
 
+function emitSeekAfterBuffering(
+  adapterApi: YouTubeMediaAdapterApi,
+  config: ResolvedYouTubeAdapterOptions,
+  context: PlaybackContext,
+  youtubeApi: YouTubeIframeApi,
+  currentSnapshot: VideoSnapshot,
+): void {
+  if (
+    context.lastPlayerState !== youtubeApi.PlayerState.BUFFERING ||
+    context.stateBeforeBuffering !== youtubeApi.PlayerState.PLAYING ||
+    context.bufferStartTime === null ||
+    currentSnapshot.currentTime === undefined ||
+    Math.abs(currentSnapshot.currentTime - context.bufferStartTime) <
+      config.seekThresholdSeconds
+  ) {
+    return;
+  }
+
+  emitSeek(
+    adapterApi,
+    context,
+    context.bufferStartTime,
+    currentSnapshot.currentTime,
+  );
+}
+
 function clearBufferingState(context: PlaybackContext): void {
+  context.bufferStartTime = null;
   context.isBuffering = false;
   context.stateBeforeBuffering = null;
 }
@@ -316,8 +358,13 @@ function detectSeek(
     (Date.now() - context.lastSampleAt) / 1000,
   );
   const actualDelta = currentTime - context.lastCurrentTime;
+  const expectedPlaybackDelta = Math.min(
+    elapsedSeconds,
+    config.seekThresholdSeconds,
+  );
+  const seekDelta = Math.abs(actualDelta) - expectedPlaybackDelta;
 
-  if (Math.abs(actualDelta - elapsedSeconds) > config.seekThresholdSeconds) {
+  if (seekDelta >= config.seekThresholdSeconds) {
     emitSeek(adapterApi, context, context.lastCurrentTime, currentTime);
   }
 }
