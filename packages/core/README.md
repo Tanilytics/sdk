@@ -32,6 +32,7 @@ You can also provide the ingestion endpoint through the `INGESTION_URL` environm
 - One-time SDK initialization with a module-level singleton
 - Manual event tracking for custom product events
 - Built-in autocapture for page views, clicks, form submissions, scroll depth, and time on page
+- Media adapter extensions that emit internal media events through the core pipeline
 - Batching, queued delivery, retries, and `sendBeacon` support on unload
 - Session persistence in browser storage
 - Privacy controls for opt-out, consent, and Do Not Track
@@ -112,6 +113,23 @@ analytics.init({
 });
 ```
 
+### Register media adapters
+
+Media adapters are configured through `analytics.init()` and run independently from built-in autocapture.
+
+```ts
+import analytics from '@analytics-sdk/core';
+import { youtubeAdapter } from '@analytics-sdk/adapter-youtube';
+
+analytics.init({
+  siteToken: 'sk_live_abc12345',
+  endpoint: 'https://ingest.example.com/api/v1/events',
+  adapters: [youtubeAdapter()],
+});
+```
+
+`youtubeAdapter()` auto-detects supported YouTube embed iframes already present in the document. Pass `youtubeAdapter({ iframe })` if you want to scope tracking to one embed.
+
 ### Privacy controls
 
 ```ts
@@ -148,7 +166,7 @@ The default export exposes:
 - `analytics.EventTypes`
 - `analytics.SDK_VERSION`
 
-The package also exports types including `AnalyticsConfig`, `EventType`, `EventProperties`, `IngestionEvent`, `IngestionPayload`, `SessionContext`, and `MediaAdapterInterface`.
+The package also exports types including `AnalyticsConfig`, `EventType`, `EventProperties`, `IngestionEvent`, `IngestionPayload`, `SessionContext`, `MediaAdapterInterface`, `MediaAdapterApi`, and `MediaEventType`.
 
 ## Event Model
 
@@ -202,6 +220,7 @@ interface AnalyticsConfig {
         clicks?: boolean;
         formSubmissions?: boolean;
       };
+  adapters?: readonly MediaAdapterInterface[];
 }
 ```
 
@@ -226,3 +245,4 @@ Validation rules enforced by the SDK include:
 - `maxQueueSize` must be an integer between `1` and `10000`
 - `compress`, `debug`, `requireConsent`, and `respectDoNotTrack` must be booleans when provided
 - `autocapture` must be either a boolean or an object containing boolean feature flags
+- `adapters` must be an array of objects with `name`, `attach(api)`, and `detach()`

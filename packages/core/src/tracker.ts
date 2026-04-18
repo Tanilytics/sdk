@@ -1,4 +1,10 @@
-import type { InternalEventType, EventProperties } from './types';
+import type {
+  InternalEventType,
+  EventProperties,
+  MediaAdapterApi,
+  MediaAdapterInterface,
+  MediaEventType,
+} from './types';
 import type { AnalyticsConfig } from './config/types';
 import { validateAndMergeConfig } from './config';
 import type { ResolvedConfig } from './config/types';
@@ -127,6 +133,7 @@ export class AnalyticsTracker {
   private readonly config: ResolvedConfig;
   private readonly session: SessionManager;
   private readonly queue: EventQueue;
+  private readonly adapters: readonly MediaAdapterInterface[];
   private isDestroyed = false;
 
   constructor(userConfig: AnalyticsConfig) {
@@ -135,6 +142,7 @@ export class AnalyticsTracker {
     // If config is invalid, the constructor throws immediately
     // and nothing else is initialised.
     this.config = validateAndMergeConfig(userConfig);
+    this.adapters = [...(userConfig.adapters ?? [])];
 
     // Step 2: Configure privacy
     // Must happen before any event is built or sent.
@@ -182,51 +190,75 @@ export class AnalyticsTracker {
     }
 
     // Then attach the SPA navigation listener for subsequent page views
-    if (pageViews) {
-      attachPageViewTracker({
-        track: (eventType, properties) => {
-          this.trackInternal(eventType as InternalEventType, properties);
+    const mediaAdapterApi: MediaAdapterApi = {
+      trackMedia: (eventType, properties) =>
+        this.trackMedia(eventType, properties),
+    };
 
-          // Reset per-page autocapture state after SPA page view events.
-          if (eventType === EventTypes.PAGE_VIEW) {
-            if (scrollDepth) {
-              resetScrollDepth();
+    try {
+      if (pageViews) {
+        attachPageViewTracker({
+          track: (eventType, properties) => {
+            this.trackInternal(eventType as InternalEventType, properties);
+
+            // Reset per-page autocapture state after SPA page view events.
+            if (eventType === EventTypes.PAGE_VIEW) {
+              if (scrollDepth) {
+                resetScrollDepth();
+              }
+              if (timeOnPage) {
+                resetTimeOnPage();
+              }
             }
-            if (timeOnPage) {
-              resetTimeOnPage();
-            }
-          }
-        },
-        config: this.config,
-      });
-    }
+          },
+          config: this.config,
+        });
+      }
 
-    if (clicks) {
-      attachClickTracker({
-        track: (eventType, properties) =>
-          this.trackInternal(eventType as InternalEventType, properties),
-      });
-    }
+      if (clicks) {
+        attachClickTracker({
+          track: (eventType, properties) =>
+            this.trackInternal(eventType as InternalEventType, properties),
+        });
+      }
 
-    if (formSubmissions) {
-      attachFormTracker({
-        track: (eventType, properties) =>
-          this.trackInternal(eventType as InternalEventType, properties),
-      });
-    }
+      if (formSubmissions) {
+        attachFormTracker({
+          track: (eventType, properties) =>
+            this.trackInternal(eventType as InternalEventType, properties),
+        });
+      }
 
-    if (scrollDepth) {
-      attachScrollDepthTracker({
-        track: (eventType, properties) =>
-          this.trackInternal(eventType as InternalEventType, properties),
-      });
-    }
+      if (scrollDepth) {
+        attachScrollDepthTracker({
+          track: (eventType, properties) =>
+            this.trackInternal(eventType as InternalEventType, properties),
+        });
+      }
 
-    if (timeOnPage) {
-      attachTimeOnPageTracker({
-        track: (eventType, properties) =>
-          this.trackInternal(eventType as InternalEventType, properties),
-      });
+      if (timeOnPage) {
+        attachTimeOnPageTracker({
+          track: (eventType, properties) =>
+            this.trackInternal(eventType as InternalEventType, properties),
+        });
+      }
+
+      for (const adapter of this.adapters) {
+        try {
+          adapter.attach(mediaAdapterApi);
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : 'Unknown adapter error.';
+
+          throw new Error(
+            `[AnalyticsSDK] Failed to attach media adapter "${adapter.name}". ${message}`,
+            { cause: error },
+          );
+        }
+      }
+    } catch (error) {
+      this.destroy();
+      throw error;
     }
 
     if (this.config.debug) {
@@ -241,6 +273,7 @@ export class AnalyticsTracker {
           scrollDepth,
           timeOnPage,
         },
+        adapters: this.adapters.map((adapter) => adapter.name),
       });
     }
   }
@@ -274,6 +307,13 @@ export class AnalyticsTracker {
     properties?: EventProperties,
   ): void {
     this.enqueueEvent(buildInternalEvent, eventType, eventType, properties);
+  }
+
+  private trackMedia(
+    eventType: MediaEventType,
+    properties?: EventProperties,
+  ): void {
+    this.trackInternal(eventType, properties);
   }
 
   private enqueueEvent<TName extends string>(
@@ -349,6 +389,19 @@ export class AnalyticsTracker {
     detachFormTracker();
     detachScrollDepthTracker();
     detachTimeOnPageTracker();
+
+    for (const adapter of this.adapters) {
+      try {
+        adapter.detach();
+      } catch (error) {
+        if (this.config.debug) {
+          console.warn(
+            `[AnalyticsSDK] Failed to detach media adapter "${adapter.name}".`,
+            error,
+          );
+        }
+      }
+    }
 
     // Stop flush timer, remove unload listeners, flush remaining events
     this.queue.destroy();
