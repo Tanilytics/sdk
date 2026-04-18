@@ -45,17 +45,26 @@ export function youtubeAdapter(
 
           for (const iframe of targetIframes) {
             const context = createPlaybackContext(iframe);
-            contexts.set(iframe, context);
 
-            context.player = new youtubeApi.Player(iframe, {
-              events: createPlayerEventHandlers({
-                adapterApi: api,
-                config,
-                context,
-                isAttached: () => isActive(currentToken),
-                youtubeApi,
-              }),
-            });
+            try {
+              context.player = new youtubeApi.Player(iframe, {
+                events: createPlayerEventHandlers({
+                  adapterApi: api,
+                  config,
+                  context,
+                  isAttached: () => isActive(currentToken),
+                  youtubeApi,
+                }),
+              });
+
+              contexts.set(iframe, context);
+            } catch (error) {
+              console.warn(
+                '[AnalyticsSDK] Failed to initialise YouTube player for iframe.',
+                iframe,
+                error,
+              );
+            }
           }
         })
         .catch((error) => {

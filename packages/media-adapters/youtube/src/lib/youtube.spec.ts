@@ -368,6 +368,47 @@ describe('youtubeAdapter', () => {
     });
   });
 
+  it('continues attaching other iframes when one player creation fails', async () => {
+    const firstIframe = createIframe();
+    const secondIframe = createIframe(
+      'https://www.youtube.com/embed/xyz987abc65?enablejsapi=1&origin=https://example.com',
+    );
+    const firstPlayer = createMockPlayer(firstIframe);
+    const secondPlayer = createMockPlayer(secondIframe);
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const youtubeApi = installYouTubeApi(
+      new Map([
+        [firstIframe, firstPlayer.player],
+        [secondIframe, secondPlayer.player],
+      ]),
+    );
+
+    youtubeApi.playerCtor.mockImplementationOnce(() => {
+      throw new Error('Player creation failed.');
+    });
+
+    const trackMedia = vi.fn();
+
+    youtubeAdapter().attach({ trackMedia });
+    await flushMicrotasks();
+
+    expect(youtubeApi.playerCtor).toHaveBeenCalledTimes(2);
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[AnalyticsSDK] Failed to initialise YouTube player for iframe.',
+      firstIframe,
+      expect.any(Error),
+    );
+
+    youtubeApi.emitStateChange(secondIframe, youtubeApi.states.PLAYING);
+
+    expect(trackMedia).toHaveBeenCalledWith(
+      'media_play',
+      expect.objectContaining({
+        video_id: 'abc123xyz89',
+      }),
+    );
+  });
+
   it('emits milestone progress and seek events while playing', async () => {
     vi.useFakeTimers();
 

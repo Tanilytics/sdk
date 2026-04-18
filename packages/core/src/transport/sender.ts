@@ -59,7 +59,6 @@ async function attemptSend(
 
   try {
     const payload = buildPayload(events, visitorId, config.siteToken);
-    console.log(payload);
     const requestBody = await buildRequestBody(payload, config);
 
     response = await fetch(config.endpoint, {
