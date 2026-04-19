@@ -10,6 +10,7 @@ export function createPlaybackContext(
     bufferStartTime: null,
     pendingPauseFromTime: null,
     pendingPauseTime: null,
+    pausedAtTime: null,
     lastCurrentTime: null,
     lastPlayerState: null,
     stateBeforeBuffering: null,
@@ -49,6 +50,7 @@ export function resetPlaybackState(context: PlaybackContext): void {
   context.bufferStartTime = null;
   context.pendingPauseFromTime = null;
   context.pendingPauseTime = null;
+  context.pausedAtTime = null;
   context.lastCurrentTime = null;
   context.lastPlayerState = null;
   context.stateBeforeBuffering = null;

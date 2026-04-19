@@ -67,6 +67,7 @@ export interface PlaybackContext {
   bufferStartTime: number | null;
   pendingPauseFromTime: number | null;
   pendingPauseTime: number | null;
+  pausedAtTime: number | null;
   lastCurrentTime: number | null;
   lastPlayerState: number | null;
   stateBeforeBuffering: number | null;

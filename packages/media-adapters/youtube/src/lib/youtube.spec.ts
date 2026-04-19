@@ -322,6 +322,19 @@ describe('youtubeAdapter', () => {
     ]);
   });
 
+  it('emits media_pause immediately when playback is paused', async () => {
+    const { iframe, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter();
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
+
+    expect(trackMedia.mock.calls.map(([eventType]) => eventType)).toEqual([
+      'media_play',
+      'media_pause',
+    ]);
+  });
+
   it('does not emit media_buffer when buffering occurs before first play', async () => {
     const { iframe, trackMedia, youtubeApi } =
       await attachSingleIframeAdapter();
@@ -558,6 +571,39 @@ describe('youtubeAdapter', () => {
     ).toHaveLength(0);
   });
 
+  it('does not emit media_seek when resuming from a normal pause after stale playback sampling', async () => {
+    vi.useFakeTimers();
+
+    const { iframe, playerState, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter({
+        adapterOptions: {
+          progressPercentages: [100],
+          progressPollMs: 10_000,
+          seekThresholdSeconds: 2,
+        },
+        configurePlayer(player) {
+          player.setCurrentTime(115.517);
+          player.setDuration(214);
+        },
+      });
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    playerState.setCurrentTime(122.481);
+    await vi.advanceTimersByTimeAsync(6_964);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
+
+    playerState.setCurrentTime(122.755);
+    await vi.advanceTimersByTimeAsync(296);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    expect(trackMedia.mock.calls.map(([eventType]) => eventType)).toEqual([
+      'media_play',
+      'media_pause',
+      'media_play',
+    ]);
+  });
+
   it('emits media_seek when a pause-resume jump reaches the configured threshold', async () => {
     const { iframe, playerState, trackMedia, youtubeApi } =
       await attachSingleIframeAdapter({
@@ -728,6 +774,20 @@ describe('youtubeAdapter', () => {
 
     expect(trackMedia).not.toHaveBeenCalled();
     expect(document.body.contains(iframe)).toBe(true);
+  });
+
+  it('preserves a pause emitted before detach', async () => {
+    const { adapter, iframe, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter();
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
+    adapter.detach();
+
+    expect(trackMedia.mock.calls.map(([eventType]) => eventType)).toEqual([
+      'media_play',
+      'media_pause',
+    ]);
   });
 
   it('loads the iframe API script once and preserves existing ready callbacks', async () => {

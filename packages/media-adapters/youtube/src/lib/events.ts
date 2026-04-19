@@ -109,6 +109,7 @@ function handleStateChange({
 
   handleInactiveState(
     adapterApi,
+    config,
     context,
     youtubeApi,
     currentSnapshot,
@@ -201,6 +202,7 @@ function handlePlayingState(
     } else {
       emitPendingPause(adapterApi, context);
       emit(adapterApi, context, 'media_play');
+      clearPendingPause(context);
     }
   } else if (!resumedFromBuffer) {
     emit(adapterApi, context, 'media_play');
@@ -213,26 +215,53 @@ function handlePlayingState(
 
 function handleInactiveState(
   adapterApi: YouTubeMediaAdapterApi,
+  config: ResolvedYouTubeAdapterOptions,
   context: PlaybackContext,
   youtubeApi: YouTubeIframeApi,
   currentSnapshot: VideoSnapshot,
   nextState: number,
 ): void {
   const previousCurrentTime = context.lastCurrentTime;
+  const previousSampleAt = context.lastSampleAt;
 
   stopProgressPolling(context);
   updateSamplingBaseline(context, currentSnapshot.currentTime);
 
   if (nextState === youtubeApi.PlayerState.PAUSED) {
+    const alreadyPaused =
+      context.lastPlayerState === youtubeApi.PlayerState.PAUSED ||
+      (context.lastPlayerState === youtubeApi.PlayerState.BUFFERING &&
+        context.stateBeforeBuffering === youtubeApi.PlayerState.PAUSED);
+
     clearBufferingState(context);
 
     if (context.hasStartedPlayback && !context.hasCompletedPlayback) {
-      context.pendingPauseFromTime ??= previousCurrentTime;
+      const pauseTime = currentSnapshot.currentTime ?? previousCurrentTime;
+      const pauseSeekBaseline = resolvePauseSeekBaseline(
+        config,
+        previousCurrentTime,
+        previousSampleAt,
+        pauseTime,
+      );
+      const shouldDeferPauseForSeek =
+        pauseTime !== null && pauseSeekBaseline !== pauseTime;
 
-      context.pendingPauseTime =
-        currentSnapshot.currentTime ??
-        context.pendingPauseTime ??
-        previousCurrentTime;
+      if (pauseTime !== null && !alreadyPaused) {
+        context.pausedAtTime = pauseTime;
+
+        if (shouldDeferPauseForSeek) {
+          context.pendingPauseTime = pauseTime;
+          context.pendingPauseFromTime = pauseSeekBaseline;
+        } else {
+          emit(adapterApi, context, 'media_pause', {
+            current_time: pauseTime,
+          });
+          context.pendingPauseTime = null;
+          context.pendingPauseFromTime = pauseTime;
+        }
+      }
+
+      context.pausedAtTime ??= pauseTime;
     }
   }
 
@@ -354,28 +383,49 @@ function emitPendingPause(
   });
   context.pendingPauseFromTime = null;
   context.pendingPauseTime = null;
+  context.pausedAtTime = null;
 }
 
 function clearPendingPause(context: PlaybackContext): void {
   context.pendingPauseFromTime = null;
   context.pendingPauseTime = null;
+  context.pausedAtTime = null;
 }
 
 function shouldDeferPendingPauseForSeek(
   config: ResolvedYouTubeAdapterOptions,
   context: PlaybackContext,
 ): boolean {
-  if (
-    context.pendingPauseFromTime === null ||
-    context.pendingPauseTime === null
-  ) {
+  if (context.pendingPauseFromTime === null || context.pausedAtTime === null) {
     return false;
   }
 
   return (
-    Math.abs(context.pendingPauseTime - context.pendingPauseFromTime) >=
+    Math.abs(context.pausedAtTime - context.pendingPauseFromTime) >=
     config.seekThresholdSeconds
   );
+}
+
+function resolvePauseSeekBaseline(
+  config: ResolvedYouTubeAdapterOptions,
+  previousCurrentTime: number | null,
+  previousSampleAt: number | null,
+  pauseTime: number | null,
+): number | null {
+  if (pauseTime === null) {
+    return null;
+  }
+
+  if (
+    previousCurrentTime === null ||
+    previousSampleAt === null ||
+    computeSeekDelta(previousCurrentTime, pauseTime, previousSampleAt) <
+      config.seekThresholdSeconds
+  ) {
+    return pauseTime;
+  }
+
+  return previousCurrentTime;
 }
 
 function startProgressPolling(
@@ -432,19 +482,28 @@ function detectSeek(
     return;
   }
 
-  const elapsedSeconds = Math.max(
-    0,
-    (Date.now() - context.lastSampleAt) / 1000,
+  const seekDelta = computeSeekDelta(
+    context.lastCurrentTime,
+    currentTime,
+    context.lastSampleAt,
   );
-  const actualDelta = currentTime - context.lastCurrentTime;
-  const seekDelta =
-    actualDelta < 0
-      ? Math.abs(actualDelta)
-      : Math.abs(actualDelta - elapsedSeconds);
 
   if (seekDelta >= config.seekThresholdSeconds) {
     emitSeek(adapterApi, context, context.lastCurrentTime, currentTime);
   }
+}
+
+function computeSeekDelta(
+  fromTime: number,
+  toTime: number,
+  lastSampleAt: number,
+): number {
+  const elapsedSeconds = Math.max(0, (Date.now() - lastSampleAt) / 1000);
+  const actualDelta = toTime - fromTime;
+
+  return actualDelta < 0
+    ? Math.abs(actualDelta)
+    : Math.abs(actualDelta - elapsedSeconds);
 }
 
 function emitProgress(
