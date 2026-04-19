@@ -514,8 +514,12 @@ function samplePlayback(
     return;
   }
 
-  detectSeek(adapterApi, config, context, snapshot.currentTime);
-  emitProgress(adapterApi, config, context, snapshot);
+  const didSeek = detectSeek(adapterApi, config, context, snapshot.currentTime);
+
+  if (!didSeek) {
+    emitProgress(adapterApi, config, context, snapshot);
+  }
+
   updateSamplingBaseline(context, snapshot.currentTime);
 }
 
@@ -524,9 +528,9 @@ function detectSeek(
   config: ResolvedYouTubeAdapterOptions,
   context: PlaybackContext,
   currentTime: number,
-): void {
+): boolean {
   if (context.lastCurrentTime === null || context.lastSampleAt === null) {
-    return;
+    return false;
   }
 
   const seekDelta = computeSeekDelta(
@@ -537,7 +541,10 @@ function detectSeek(
 
   if (seekDelta >= config.seekThresholdSeconds) {
     emitSeek(adapterApi, context, context.lastCurrentTime, currentTime);
+    return true;
   }
+
+  return false;
 }
 
 function computeSeekDelta(
@@ -562,19 +569,28 @@ function emitProgress(
   if (
     snapshot.currentTime === undefined ||
     snapshot.duration === undefined ||
-    snapshot.duration <= 0
+    snapshot.duration <= 0 ||
+    context.lastCurrentTime === null
   ) {
     return;
   }
 
+  const previousPercent = computePercent(
+    context.lastCurrentTime,
+    snapshot.duration,
+  );
   const percent = computePercent(snapshot.currentTime, snapshot.duration);
 
-  if (percent === undefined) {
+  if (previousPercent === undefined || percent === undefined) {
     return;
   }
 
   for (const milestone of config.progressPercentages) {
-    if (percent < milestone || context.emittedProgress.has(milestone)) {
+    if (
+      percent < milestone ||
+      previousPercent >= milestone ||
+      context.emittedProgress.has(milestone)
+    ) {
       continue;
     }
 
