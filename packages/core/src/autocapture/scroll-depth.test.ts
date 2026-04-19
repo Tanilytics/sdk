@@ -7,8 +7,6 @@ import {
 } from './scroll-depth';
 
 const mockTrack = vi.fn();
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const noop = () => {};
 
 // Mock IntersectionObserver — jsdom does not implement it
 class MockIntersectionObserver {
@@ -60,9 +58,6 @@ beforeEach(() => {
   }
 
   vi.stubGlobal('IntersectionObserver', IntersectionObserverMock);
-
-  // Initialize mockObserver by calling the stubbed constructor
-  new IntersectionObserverMock(noop);
 
   attachScrollDepthTracker({ track: mockTrack });
 });
