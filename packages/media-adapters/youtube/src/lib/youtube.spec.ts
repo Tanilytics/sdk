@@ -149,8 +149,10 @@ async function flushMicrotasks(): Promise<void> {
 }
 
 async function attachSingleIframeAdapter({
+  adapterOptions,
   configurePlayer,
 }: {
+  adapterOptions?: Parameters<typeof youtubeAdapter>[0];
   configurePlayer?: (playerState: MockPlayerState) => void;
 } = {}): Promise<{
   adapter: ReturnType<typeof youtubeAdapter>;
@@ -166,7 +168,7 @@ async function attachSingleIframeAdapter({
 
   const youtubeApi = installYouTubeApi(new Map([[iframe, playerState.player]]));
   const trackMedia = vi.fn();
-  const adapter = youtubeAdapter({ iframe });
+  const adapter = youtubeAdapter({ iframe, ...adapterOptions });
 
   adapter.attach({ trackMedia });
   await flushMicrotasks();
@@ -264,12 +266,10 @@ describe('youtubeAdapter', () => {
     youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
     youtubeApi.emitStateChange(iframe, youtubeApi.states.BUFFERING);
     youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
-    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
 
     expect(trackMedia.mock.calls.map(([eventType]) => eventType)).toEqual([
       'media_play',
       'media_buffer',
-      'media_pause',
     ]);
     expect(trackMedia.mock.calls[0]?.[1]).toMatchObject({
       provider: 'youtube',
@@ -304,6 +304,34 @@ describe('youtubeAdapter', () => {
       'media_play',
       'media_pause',
       'media_play',
+    ]);
+  });
+
+  it('emits media_pause before media_play when playback resumes without seeking', async () => {
+    const { iframe, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter();
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    expect(trackMedia.mock.calls.map(([eventType]) => eventType)).toEqual([
+      'media_play',
+      'media_pause',
+      'media_play',
+    ]);
+  });
+
+  it('emits media_pause immediately when playback is paused', async () => {
+    const { iframe, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter();
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
+
+    expect(trackMedia.mock.calls.map(([eventType]) => eventType)).toEqual([
+      'media_play',
+      'media_pause',
     ]);
   });
 
@@ -416,6 +444,7 @@ describe('youtubeAdapter', () => {
 
     const { iframe, playerState, trackMedia, youtubeApi } =
       await attachSingleIframeAdapter({
+        adapterOptions: { seekThresholdSeconds: 2 },
         configurePlayer(player) {
           player.setDuration(4);
         },
@@ -451,6 +480,275 @@ describe('youtubeAdapter', () => {
     });
   });
 
+  it('does not emit media_seek for small playback jumps while playing', async () => {
+    vi.useFakeTimers();
+
+    const { iframe, playerState, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter({
+        configurePlayer(player) {
+          player.setDuration(30);
+        },
+      });
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    playerState.setCurrentTime(1);
+    await vi.advanceTimersByTimeAsync(1000);
+    playerState.setCurrentTime(2.4);
+    await vi.advanceTimersByTimeAsync(1000);
+
+    expect(
+      trackMedia.mock.calls.filter(([eventType]) => eventType === 'media_seek'),
+    ).toHaveLength(0);
+  });
+
+  it('does not emit media_seek when normal playback sampling is delayed', async () => {
+    vi.useFakeTimers();
+
+    const { iframe, playerState, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter({
+        adapterOptions: { progressPollMs: 10_000, seekThresholdSeconds: 2 },
+        configurePlayer(player) {
+          player.setDuration(30);
+        },
+      });
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    playerState.setCurrentTime(10);
+    await vi.advanceTimersByTimeAsync(10_000);
+
+    expect(
+      trackMedia.mock.calls.filter(([eventType]) => eventType === 'media_seek'),
+    ).toHaveLength(0);
+  });
+
+  it('respects configured seekThresholdSeconds when detecting larger jumps', async () => {
+    vi.useFakeTimers();
+
+    const { iframe, playerState, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter({
+        adapterOptions: { seekThresholdSeconds: 4 },
+        configurePlayer(player) {
+          player.setDuration(30);
+        },
+      });
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    playerState.setCurrentTime(1);
+    await vi.advanceTimersByTimeAsync(1000);
+    playerState.setCurrentTime(6);
+    await vi.advanceTimersByTimeAsync(1000);
+
+    const seekCalls = trackMedia.mock.calls.filter(
+      ([eventType]) => eventType === 'media_seek',
+    );
+
+    expect(seekCalls).toHaveLength(1);
+    expect(seekCalls[0]?.[1]).toMatchObject({
+      current_time: 6,
+      delta_seconds: 5,
+      from_time: 1,
+      to_time: 6,
+    });
+  });
+
+  it('does not emit media_seek when a pause-resume jump stays below the configured threshold', async () => {
+    const { iframe, playerState, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter({
+        adapterOptions: { seekThresholdSeconds: 4 },
+      });
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
+
+    playerState.setCurrentTime(3);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    expect(
+      trackMedia.mock.calls.filter(([eventType]) => eventType === 'media_seek'),
+    ).toHaveLength(0);
+  });
+
+  it('does not emit media_seek when resuming from a normal pause after stale playback sampling', async () => {
+    vi.useFakeTimers();
+
+    const { iframe, playerState, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter({
+        adapterOptions: {
+          progressPercentages: [100],
+          progressPollMs: 10_000,
+          seekThresholdSeconds: 2,
+        },
+        configurePlayer(player) {
+          player.setCurrentTime(115.517);
+          player.setDuration(214);
+        },
+      });
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    playerState.setCurrentTime(122.481);
+    await vi.advanceTimersByTimeAsync(6_964);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
+
+    playerState.setCurrentTime(122.755);
+    await vi.advanceTimersByTimeAsync(296);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    expect(trackMedia.mock.calls.map(([eventType]) => eventType)).toEqual([
+      'media_play',
+      'media_pause',
+      'media_play',
+    ]);
+  });
+
+  it('emits media_seek when a pause-resume jump reaches the configured threshold', async () => {
+    const { iframe, playerState, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter({
+        adapterOptions: { seekThresholdSeconds: 3 },
+      });
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
+
+    playerState.setCurrentTime(3);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    const seekCalls = trackMedia.mock.calls.filter(
+      ([eventType]) => eventType === 'media_seek',
+    );
+
+    expect(seekCalls).toHaveLength(1);
+    expect(seekCalls[0]?.[1]).toMatchObject({
+      current_time: 3,
+      delta_seconds: 3,
+      from_time: 0,
+      to_time: 3,
+    });
+  });
+
+  it('emits media_seek without transient pause or play for keyboard-style jumps', async () => {
+    const { iframe, playerState, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter({
+        adapterOptions: { seekThresholdSeconds: 10 },
+      });
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+    playerState.setCurrentTime(10);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    expect(trackMedia.mock.calls.map(([eventType]) => eventType)).toEqual([
+      'media_play',
+      'media_seek',
+    ]);
+    expect(trackMedia.mock.calls[1]?.[1]).toMatchObject({
+      current_time: 10,
+      delta_seconds: 10,
+      from_time: 0,
+      to_time: 10,
+    });
+  });
+
+  it('emits media_seek for repeated paused states during keyboard-style jumps', async () => {
+    const { iframe, playerState, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter({
+        adapterOptions: { seekThresholdSeconds: 10 },
+      });
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+    playerState.setCurrentTime(10.6);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
+    playerState.setCurrentTime(10.4);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    expect(trackMedia.mock.calls.map(([eventType]) => eventType)).toEqual([
+      'media_play',
+      'media_seek',
+    ]);
+    expect(trackMedia.mock.calls[1]?.[1]).toMatchObject({
+      current_time: 10.4,
+      delta_seconds: 10.4,
+      from_time: 0,
+      to_time: 10.4,
+    });
+  });
+
+  it('emits media_seek for paused buffering keyboard jumps without duplicate pauses', async () => {
+    const { iframe, playerState, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter({
+        adapterOptions: { seekThresholdSeconds: 10 },
+      });
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+    playerState.setCurrentTime(10.7);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.BUFFERING);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
+    playerState.setCurrentTime(10.5);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    expect(trackMedia.mock.calls.map(([eventType]) => eventType)).toEqual([
+      'media_play',
+      'media_seek',
+    ]);
+    expect(trackMedia.mock.calls[1]?.[1]).toMatchObject({
+      current_time: 10.5,
+      delta_seconds: 10.5,
+      from_time: 0,
+      to_time: 10.5,
+    });
+  });
+
+  it('emits media_seek for large jumps across buffering transitions', async () => {
+    const { iframe, playerState, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter({
+        adapterOptions: { seekThresholdSeconds: 10 },
+      });
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    playerState.setCurrentTime(30);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.BUFFERING);
+    playerState.setCurrentTime(55);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.BUFFERING);
+    playerState.setCurrentTime(72);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    const seekCalls = trackMedia.mock.calls.filter(
+      ([eventType]) => eventType === 'media_seek',
+    );
+
+    expect(seekCalls).toHaveLength(1);
+    expect(seekCalls[0]?.[1]).toMatchObject({
+      current_time: 72,
+      delta_seconds: 72,
+      from_time: 0,
+      to_time: 72,
+    });
+  });
+
+  it('does not emit media_seek for small jumps across buffering transitions', async () => {
+    const { iframe, playerState, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter({
+        adapterOptions: { seekThresholdSeconds: 10 },
+      });
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    playerState.setCurrentTime(5);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.BUFFERING);
+    playerState.setCurrentTime(9);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    expect(
+      trackMedia.mock.calls.filter(([eventType]) => eventType === 'media_seek'),
+    ).toHaveLength(0);
+  });
+
   it('emits media_complete once when playback ends', async () => {
     const { iframe, trackMedia, youtubeApi } =
       await attachSingleIframeAdapter();
@@ -476,6 +774,20 @@ describe('youtubeAdapter', () => {
 
     expect(trackMedia).not.toHaveBeenCalled();
     expect(document.body.contains(iframe)).toBe(true);
+  });
+
+  it('preserves a pause emitted before detach', async () => {
+    const { adapter, iframe, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter();
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
+    adapter.detach();
+
+    expect(trackMedia.mock.calls.map(([eventType]) => eventType)).toEqual([
+      'media_play',
+      'media_pause',
+    ]);
   });
 
   it('loads the iframe API script once and preserves existing ready callbacks', async () => {

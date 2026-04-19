@@ -85,6 +85,7 @@ function handleStateChange({
   if (nextState === youtubeApi.PlayerState.BUFFERING) {
     handleBufferingState(
       adapterApi,
+      config,
       context,
       youtubeApi,
       currentSnapshot,
@@ -108,6 +109,7 @@ function handleStateChange({
 
   handleInactiveState(
     adapterApi,
+    config,
     context,
     youtubeApi,
     currentSnapshot,
@@ -117,6 +119,7 @@ function handleStateChange({
 
 function handleBufferingState(
   adapterApi: YouTubeMediaAdapterApi,
+  config: ResolvedYouTubeAdapterOptions,
   context: PlaybackContext,
   youtubeApi: YouTubeIframeApi,
   currentSnapshot: VideoSnapshot,
@@ -124,8 +127,23 @@ function handleBufferingState(
 ): void {
   stopProgressPolling(context);
 
+  if (
+    context.lastPlayerState === youtubeApi.PlayerState.PAUSED &&
+    !shouldDeferPendingPauseForSeek(config, context)
+  ) {
+    emitPendingPause(adapterApi, context);
+  }
+
   if (context.lastPlayerState !== youtubeApi.PlayerState.BUFFERING) {
     context.stateBeforeBuffering = context.lastPlayerState;
+  }
+
+  if (
+    context.stateBeforeBuffering === youtubeApi.PlayerState.PLAYING &&
+    context.bufferStartTime === null
+  ) {
+    context.bufferStartTime =
+      context.lastCurrentTime ?? currentSnapshot.currentTime ?? null;
   }
 
   if (shouldEmitBufferEvent(context, youtubeApi)) {
@@ -149,17 +167,44 @@ function handlePlayingState(
   nextState: number,
 ): void {
   resetLifecycleForReplay(context, currentSnapshot);
-  emitSeekOnResume(adapterApi, config, context, youtubeApi, currentSnapshot);
+  const didSeekAfterBuffering = emitSeekAfterBuffering(
+    adapterApi,
+    config,
+    context,
+    youtubeApi,
+    currentSnapshot,
+  );
+  const didSeekOnResume = emitSeekOnResume(
+    adapterApi,
+    config,
+    context,
+    youtubeApi,
+    currentSnapshot,
+  );
+  const didEmitSeek = didSeekAfterBuffering || didSeekOnResume;
 
   const resumedFromBuffer =
     context.lastPlayerState === youtubeApi.PlayerState.BUFFERING &&
     context.stateBeforeBuffering === youtubeApi.PlayerState.PLAYING;
+  const resumedFromPause =
+    context.lastPlayerState === youtubeApi.PlayerState.PAUSED;
+  const resumedFromBufferedPause =
+    context.lastPlayerState === youtubeApi.PlayerState.BUFFERING &&
+    context.stateBeforeBuffering === youtubeApi.PlayerState.PAUSED;
 
   clearBufferingState(context);
   context.hasStartedPlayback = true;
   context.hasCompletedPlayback = false;
 
-  if (!resumedFromBuffer) {
+  if (resumedFromPause || resumedFromBufferedPause) {
+    if (didEmitSeek) {
+      clearPendingPause(context);
+    } else {
+      emitPendingPause(adapterApi, context);
+      emit(adapterApi, context, 'media_play');
+      clearPendingPause(context);
+    }
+  } else if (!resumedFromBuffer) {
     emit(adapterApi, context, 'media_play');
   }
 
@@ -170,32 +215,114 @@ function handlePlayingState(
 
 function handleInactiveState(
   adapterApi: YouTubeMediaAdapterApi,
+  config: ResolvedYouTubeAdapterOptions,
   context: PlaybackContext,
   youtubeApi: YouTubeIframeApi,
   currentSnapshot: VideoSnapshot,
   nextState: number,
 ): void {
+  const previousCurrentTime = context.lastCurrentTime;
+  const previousSampleAt = context.lastSampleAt;
+
   stopProgressPolling(context);
   updateSamplingBaseline(context, currentSnapshot.currentTime);
 
   if (nextState === youtubeApi.PlayerState.PAUSED) {
-    clearBufferingState(context);
-
-    if (context.hasStartedPlayback && !context.hasCompletedPlayback) {
-      emit(adapterApi, context, 'media_pause');
-    }
+    handlePausedState(
+      adapterApi,
+      config,
+      context,
+      youtubeApi,
+      currentSnapshot,
+      previousCurrentTime,
+      previousSampleAt,
+    );
   }
 
   if (nextState === youtubeApi.PlayerState.ENDED) {
-    clearBufferingState(context);
-
-    if (!context.hasCompletedPlayback) {
-      emit(adapterApi, context, 'media_complete', { percent: 100 });
-      context.hasCompletedPlayback = true;
-    }
+    handleEndedState(adapterApi, context);
   }
 
   context.lastPlayerState = nextState;
+}
+
+function handlePausedState(
+  adapterApi: YouTubeMediaAdapterApi,
+  config: ResolvedYouTubeAdapterOptions,
+  context: PlaybackContext,
+  youtubeApi: YouTubeIframeApi,
+  currentSnapshot: VideoSnapshot,
+  previousCurrentTime: number | null,
+  previousSampleAt: number | null,
+): void {
+  const alreadyPaused =
+    context.lastPlayerState === youtubeApi.PlayerState.PAUSED ||
+    (context.lastPlayerState === youtubeApi.PlayerState.BUFFERING &&
+      context.stateBeforeBuffering === youtubeApi.PlayerState.PAUSED);
+
+  clearBufferingState(context);
+
+  if (!context.hasStartedPlayback || context.hasCompletedPlayback) {
+    return;
+  }
+
+  const pauseTime = currentSnapshot.currentTime ?? previousCurrentTime;
+  const pauseSeekBaseline = resolvePauseSeekBaseline(
+    config,
+    previousCurrentTime,
+    previousSampleAt,
+    pauseTime,
+  );
+
+  recordPauseState(
+    adapterApi,
+    context,
+    pauseTime,
+    pauseSeekBaseline,
+    alreadyPaused,
+  );
+  context.pausedAtTime ??= pauseTime;
+}
+
+function recordPauseState(
+  adapterApi: YouTubeMediaAdapterApi,
+  context: PlaybackContext,
+  pauseTime: number | null,
+  pauseSeekBaseline: number | null,
+  alreadyPaused: boolean,
+): void {
+  if (pauseTime === null || alreadyPaused) {
+    return;
+  }
+
+  context.pausedAtTime = pauseTime;
+
+  if (pauseSeekBaseline !== pauseTime) {
+    context.pendingPauseTime = pauseTime;
+    context.pendingPauseFromTime = pauseSeekBaseline;
+    return;
+  }
+
+  emit(adapterApi, context, 'media_pause', {
+    current_time: pauseTime,
+  });
+  context.pendingPauseTime = null;
+  context.pendingPauseFromTime = pauseTime;
+}
+
+function handleEndedState(
+  adapterApi: YouTubeMediaAdapterApi,
+  context: PlaybackContext,
+): void {
+  emitPendingPause(adapterApi, context);
+  clearBufferingState(context);
+
+  if (context.hasCompletedPlayback) {
+    return;
+  }
+
+  emit(adapterApi, context, 'media_complete', { percent: 100 });
+  context.hasCompletedPlayback = true;
 }
 
 function shouldEmitBufferEvent(
@@ -233,28 +360,119 @@ function emitSeekOnResume(
   context: PlaybackContext,
   youtubeApi: YouTubeIframeApi,
   currentSnapshot: VideoSnapshot,
-): void {
+): boolean {
+  const resumedFromPause =
+    context.lastPlayerState === youtubeApi.PlayerState.PAUSED;
+  const resumedFromBufferedPause =
+    context.lastPlayerState === youtubeApi.PlayerState.BUFFERING &&
+    context.stateBeforeBuffering === youtubeApi.PlayerState.PAUSED;
+  const pauseFromTime = context.pendingPauseFromTime ?? context.lastCurrentTime;
+
   if (
-    context.lastPlayerState !== youtubeApi.PlayerState.PAUSED ||
-    context.lastCurrentTime === null ||
+    (!resumedFromPause && !resumedFromBufferedPause) ||
+    pauseFromTime === null ||
     currentSnapshot.currentTime === undefined ||
-    Math.abs(currentSnapshot.currentTime - context.lastCurrentTime) <=
+    Math.abs(currentSnapshot.currentTime - pauseFromTime) <
       config.seekThresholdSeconds
   ) {
-    return;
+    return false;
+  }
+
+  emitSeek(adapterApi, context, pauseFromTime, currentSnapshot.currentTime);
+
+  return true;
+}
+
+function emitSeekAfterBuffering(
+  adapterApi: YouTubeMediaAdapterApi,
+  config: ResolvedYouTubeAdapterOptions,
+  context: PlaybackContext,
+  youtubeApi: YouTubeIframeApi,
+  currentSnapshot: VideoSnapshot,
+): boolean {
+  if (
+    context.lastPlayerState !== youtubeApi.PlayerState.BUFFERING ||
+    context.stateBeforeBuffering !== youtubeApi.PlayerState.PLAYING ||
+    context.bufferStartTime === null ||
+    currentSnapshot.currentTime === undefined ||
+    Math.abs(currentSnapshot.currentTime - context.bufferStartTime) <
+      config.seekThresholdSeconds
+  ) {
+    return false;
   }
 
   emitSeek(
     adapterApi,
     context,
-    context.lastCurrentTime,
+    context.bufferStartTime,
     currentSnapshot.currentTime,
   );
+
+  return true;
 }
 
 function clearBufferingState(context: PlaybackContext): void {
+  context.bufferStartTime = null;
   context.isBuffering = false;
   context.stateBeforeBuffering = null;
+}
+
+function emitPendingPause(
+  adapterApi: YouTubeMediaAdapterApi,
+  context: PlaybackContext,
+): void {
+  if (context.pendingPauseTime === null) {
+    return;
+  }
+
+  emit(adapterApi, context, 'media_pause', {
+    current_time: context.pendingPauseTime,
+  });
+  context.pendingPauseFromTime = null;
+  context.pendingPauseTime = null;
+  context.pausedAtTime = null;
+}
+
+function clearPendingPause(context: PlaybackContext): void {
+  context.pendingPauseFromTime = null;
+  context.pendingPauseTime = null;
+  context.pausedAtTime = null;
+}
+
+function shouldDeferPendingPauseForSeek(
+  config: ResolvedYouTubeAdapterOptions,
+  context: PlaybackContext,
+): boolean {
+  if (context.pendingPauseFromTime === null || context.pausedAtTime === null) {
+    return false;
+  }
+
+  return (
+    Math.abs(context.pausedAtTime - context.pendingPauseFromTime) >=
+    config.seekThresholdSeconds
+  );
+}
+
+function resolvePauseSeekBaseline(
+  config: ResolvedYouTubeAdapterOptions,
+  previousCurrentTime: number | null,
+  previousSampleAt: number | null,
+  pauseTime: number | null,
+): number | null {
+  if (pauseTime === null) {
+    return null;
+  }
+
+  if (
+    previousCurrentTime === null ||
+    previousSampleAt === null ||
+    computeSeekDelta(previousCurrentTime, pauseTime, previousSampleAt) <
+      config.seekThresholdSeconds
+  ) {
+    return pauseTime;
+  }
+
+  return previousCurrentTime;
 }
 
 function startProgressPolling(
@@ -311,15 +529,28 @@ function detectSeek(
     return;
   }
 
-  const elapsedSeconds = Math.max(
-    0,
-    (Date.now() - context.lastSampleAt) / 1000,
+  const seekDelta = computeSeekDelta(
+    context.lastCurrentTime,
+    currentTime,
+    context.lastSampleAt,
   );
-  const actualDelta = currentTime - context.lastCurrentTime;
 
-  if (Math.abs(actualDelta - elapsedSeconds) > config.seekThresholdSeconds) {
+  if (seekDelta >= config.seekThresholdSeconds) {
     emitSeek(adapterApi, context, context.lastCurrentTime, currentTime);
   }
+}
+
+function computeSeekDelta(
+  fromTime: number,
+  toTime: number,
+  lastSampleAt: number,
+): number {
+  const elapsedSeconds = Math.max(0, (Date.now() - lastSampleAt) / 1000);
+  const actualDelta = toTime - fromTime;
+
+  return actualDelta < 0
+    ? Math.abs(actualDelta)
+    : Math.abs(actualDelta - elapsedSeconds);
 }
 
 function emitProgress(

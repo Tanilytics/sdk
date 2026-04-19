@@ -64,3 +64,6 @@ youtubeAdapter({
   seekThresholdSeconds: 2,
 });
 ```
+
+`seekThresholdSeconds` controls how large a jump must be before the adapter emits
+`media_seek`.

@@ -7,6 +7,10 @@ export function createPlaybackContext(
     iframe,
     player: null,
     pollTimer: null,
+    bufferStartTime: null,
+    pendingPauseFromTime: null,
+    pendingPauseTime: null,
+    pausedAtTime: null,
     lastCurrentTime: null,
     lastPlayerState: null,
     stateBeforeBuffering: null,
@@ -43,6 +47,10 @@ export function resetVideoLifecycle(context: PlaybackContext): void {
 
 export function resetPlaybackState(context: PlaybackContext): void {
   resetVideoLifecycle(context);
+  context.bufferStartTime = null;
+  context.pendingPauseFromTime = null;
+  context.pendingPauseTime = null;
+  context.pausedAtTime = null;
   context.lastCurrentTime = null;
   context.lastPlayerState = null;
   context.stateBeforeBuffering = null;
