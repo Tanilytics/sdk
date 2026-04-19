@@ -1,6 +1,6 @@
 {
   "name": "@analytics-sdk/adapter-youtube",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "type": "module",
   "main": "./dist/index.esm.js",
   "module": "./dist/index.esm.js",
@@ -43,10 +43,10 @@
     ]
   },
   "peerDependencies": {
-    "@analytics-sdk/core": "^0.3.4"
+    "@analytics-sdk/core": "^0.3.5"
   },
   "devDependencies": {
-    "@analytics-sdk/core": "^0.3.4",
+    "@analytics-sdk/core": "^0.3.5",
     "vitest": "^4.0.9"
   }
 }
