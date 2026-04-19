@@ -480,6 +480,83 @@ describe('youtubeAdapter', () => {
     });
   });
 
+  it('does not backfill progress milestones when playback seeks to the end', async () => {
+    vi.useFakeTimers();
+
+    const { iframe, playerState, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter({
+        adapterOptions: { seekThresholdSeconds: 2 },
+        configurePlayer(player) {
+          player.setDuration(100);
+        },
+      });
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    playerState.setCurrentTime(1);
+    await vi.advanceTimersByTimeAsync(1000);
+    playerState.setCurrentTime(2);
+    await vi.advanceTimersByTimeAsync(1000);
+    playerState.setCurrentTime(100);
+    await vi.advanceTimersByTimeAsync(1000);
+
+    const progressCalls = trackMedia.mock.calls.filter(
+      ([eventType]) => eventType === 'media_progress',
+    );
+    const seekCalls = trackMedia.mock.calls.filter(
+      ([eventType]) => eventType === 'media_seek',
+    );
+
+    expect(progressCalls).toHaveLength(0);
+    expect(seekCalls).toHaveLength(1);
+    expect(seekCalls[0]?.[1]).toMatchObject({
+      current_time: 100,
+      delta_seconds: 98,
+      from_time: 2,
+      to_time: 100,
+    });
+  });
+
+  it('does not backfill progress milestones when resuming at the end after a seek', async () => {
+    vi.useFakeTimers();
+
+    const { iframe, playerState, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter({
+        adapterOptions: { seekThresholdSeconds: 2 },
+        configurePlayer(player) {
+          player.setDuration(100);
+        },
+      });
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    playerState.setCurrentTime(1);
+    await vi.advanceTimersByTimeAsync(1000);
+    playerState.setCurrentTime(2);
+    await vi.advanceTimersByTimeAsync(1000);
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PAUSED);
+    playerState.setCurrentTime(100);
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+    await vi.advanceTimersByTimeAsync(1000);
+
+    const progressCalls = trackMedia.mock.calls.filter(
+      ([eventType]) => eventType === 'media_progress',
+    );
+    const seekCalls = trackMedia.mock.calls.filter(
+      ([eventType]) => eventType === 'media_seek',
+    );
+
+    expect(progressCalls).toHaveLength(0);
+    expect(seekCalls).toHaveLength(1);
+    expect(seekCalls[0]?.[1]).toMatchObject({
+      current_time: 100,
+      delta_seconds: 98,
+      from_time: 2,
+      to_time: 100,
+    });
+  });
+
   it('does not emit media_seek for small playback jumps while playing', async () => {
     vi.useFakeTimers();
 
