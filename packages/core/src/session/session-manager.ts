@@ -1,4 +1,4 @@
-import { generateSessionId } from './session-id';
+import { generateSecureUuid } from '../random';
 import { loadSession, saveSession, clearSession } from './session-storage';
 
 export interface SessionData {
@@ -53,7 +53,7 @@ export class SessionManager {
   private createFresh(): SessionData {
     const dateNow = Date.now();
     const session: SessionData = {
-      sessionId: generateSessionId(),
+      sessionId: generateSecureUuid(),
       startedAt: dateNow,
       lastActivityAt: dateNow,
     };
