@@ -120,15 +120,13 @@ describe('events/event-builder', () => {
     );
   });
 
-  it('uses Math.random fallback when crypto is unavailable', () => {
+  it('throws when secure crypto APIs are unavailable', () => {
     vi.stubGlobal('crypto', undefined);
-    vi.spyOn(Math, 'random').mockReturnValue(0.1);
 
     configureSiteToken('site_token_123');
-    const event = buildInternalEvent('page_view');
 
-    expect(event.event_id).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    expect(() => buildInternalEvent('page_view')).toThrow(
+      /Secure random ID generation is unavailable/,
     );
   });
 
