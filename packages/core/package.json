@@ -24,6 +24,17 @@
     "url": "git+https://github.com/Tanilytics/analytics-sdk.git",
     "directory": "packages/core"
   },
+  "keywords": [
+    "analytics",
+    "analytics-sdk",
+    "browser-analytics",
+    "web-analytics",
+    "event-tracking",
+    "autocapture",
+    "privacy",
+    "typescript",
+    "tanilytics"
+  ],
   "nx": {
     "tags": [
       "scope:core",

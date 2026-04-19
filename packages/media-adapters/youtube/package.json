@@ -24,6 +24,18 @@
     "url": "git+https://github.com/Tanilytics/analytics-sdk.git",
     "directory": "packages/media-adapters/youtube"
   },
+  "keywords": [
+    "analytics",
+    "analytics-sdk",
+    "youtube",
+    "youtube-analytics",
+    "video-analytics",
+    "media-analytics",
+    "youtube-iframe",
+    "adapter",
+    "typescript",
+    "tanilytics"
+  ],
   "nx": {
     "tags": [
       "scope:adapter",
