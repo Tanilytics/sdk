@@ -437,11 +437,10 @@ function detectSeek(
     (Date.now() - context.lastSampleAt) / 1000,
   );
   const actualDelta = currentTime - context.lastCurrentTime;
-  const expectedPlaybackDelta = Math.min(
-    elapsedSeconds,
-    config.seekThresholdSeconds,
-  );
-  const seekDelta = Math.abs(actualDelta) - expectedPlaybackDelta;
+  const seekDelta =
+    actualDelta < 0
+      ? Math.abs(actualDelta)
+      : Math.abs(actualDelta - elapsedSeconds);
 
   if (seekDelta >= config.seekThresholdSeconds) {
     emitSeek(adapterApi, context, context.lastCurrentTime, currentTime);

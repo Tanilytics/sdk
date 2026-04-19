@@ -489,6 +489,27 @@ describe('youtubeAdapter', () => {
     ).toHaveLength(0);
   });
 
+  it('does not emit media_seek when normal playback sampling is delayed', async () => {
+    vi.useFakeTimers();
+
+    const { iframe, playerState, trackMedia, youtubeApi } =
+      await attachSingleIframeAdapter({
+        adapterOptions: { progressPollMs: 10_000, seekThresholdSeconds: 2 },
+        configurePlayer(player) {
+          player.setDuration(30);
+        },
+      });
+
+    youtubeApi.emitStateChange(iframe, youtubeApi.states.PLAYING);
+
+    playerState.setCurrentTime(10);
+    await vi.advanceTimersByTimeAsync(10_000);
+
+    expect(
+      trackMedia.mock.calls.filter(([eventType]) => eventType === 'media_seek'),
+    ).toHaveLength(0);
+  });
+
   it('respects configured seekThresholdSeconds when detecting larger jumps', async () => {
     vi.useFakeTimers();
 
