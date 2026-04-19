@@ -228,54 +228,101 @@ function handleInactiveState(
   updateSamplingBaseline(context, currentSnapshot.currentTime);
 
   if (nextState === youtubeApi.PlayerState.PAUSED) {
-    const alreadyPaused =
-      context.lastPlayerState === youtubeApi.PlayerState.PAUSED ||
-      (context.lastPlayerState === youtubeApi.PlayerState.BUFFERING &&
-        context.stateBeforeBuffering === youtubeApi.PlayerState.PAUSED);
-
-    clearBufferingState(context);
-
-    if (context.hasStartedPlayback && !context.hasCompletedPlayback) {
-      const pauseTime = currentSnapshot.currentTime ?? previousCurrentTime;
-      const pauseSeekBaseline = resolvePauseSeekBaseline(
-        config,
-        previousCurrentTime,
-        previousSampleAt,
-        pauseTime,
-      );
-      const shouldDeferPauseForSeek =
-        pauseTime !== null && pauseSeekBaseline !== pauseTime;
-
-      if (pauseTime !== null && !alreadyPaused) {
-        context.pausedAtTime = pauseTime;
-
-        if (shouldDeferPauseForSeek) {
-          context.pendingPauseTime = pauseTime;
-          context.pendingPauseFromTime = pauseSeekBaseline;
-        } else {
-          emit(adapterApi, context, 'media_pause', {
-            current_time: pauseTime,
-          });
-          context.pendingPauseTime = null;
-          context.pendingPauseFromTime = pauseTime;
-        }
-      }
-
-      context.pausedAtTime ??= pauseTime;
-    }
+    handlePausedState(
+      adapterApi,
+      config,
+      context,
+      youtubeApi,
+      currentSnapshot,
+      previousCurrentTime,
+      previousSampleAt,
+    );
   }
 
   if (nextState === youtubeApi.PlayerState.ENDED) {
-    emitPendingPause(adapterApi, context);
-    clearBufferingState(context);
-
-    if (!context.hasCompletedPlayback) {
-      emit(adapterApi, context, 'media_complete', { percent: 100 });
-      context.hasCompletedPlayback = true;
-    }
+    handleEndedState(adapterApi, context);
   }
 
   context.lastPlayerState = nextState;
+}
+
+function handlePausedState(
+  adapterApi: YouTubeMediaAdapterApi,
+  config: ResolvedYouTubeAdapterOptions,
+  context: PlaybackContext,
+  youtubeApi: YouTubeIframeApi,
+  currentSnapshot: VideoSnapshot,
+  previousCurrentTime: number | null,
+  previousSampleAt: number | null,
+): void {
+  const alreadyPaused =
+    context.lastPlayerState === youtubeApi.PlayerState.PAUSED ||
+    (context.lastPlayerState === youtubeApi.PlayerState.BUFFERING &&
+      context.stateBeforeBuffering === youtubeApi.PlayerState.PAUSED);
+
+  clearBufferingState(context);
+
+  if (!context.hasStartedPlayback || context.hasCompletedPlayback) {
+    return;
+  }
+
+  const pauseTime = currentSnapshot.currentTime ?? previousCurrentTime;
+  const pauseSeekBaseline = resolvePauseSeekBaseline(
+    config,
+    previousCurrentTime,
+    previousSampleAt,
+    pauseTime,
+  );
+
+  recordPauseState(
+    adapterApi,
+    context,
+    pauseTime,
+    pauseSeekBaseline,
+    alreadyPaused,
+  );
+  context.pausedAtTime ??= pauseTime;
+}
+
+function recordPauseState(
+  adapterApi: YouTubeMediaAdapterApi,
+  context: PlaybackContext,
+  pauseTime: number | null,
+  pauseSeekBaseline: number | null,
+  alreadyPaused: boolean,
+): void {
+  if (pauseTime === null || alreadyPaused) {
+    return;
+  }
+
+  context.pausedAtTime = pauseTime;
+
+  if (pauseSeekBaseline !== pauseTime) {
+    context.pendingPauseTime = pauseTime;
+    context.pendingPauseFromTime = pauseSeekBaseline;
+    return;
+  }
+
+  emit(adapterApi, context, 'media_pause', {
+    current_time: pauseTime,
+  });
+  context.pendingPauseTime = null;
+  context.pendingPauseFromTime = pauseTime;
+}
+
+function handleEndedState(
+  adapterApi: YouTubeMediaAdapterApi,
+  context: PlaybackContext,
+): void {
+  emitPendingPause(adapterApi, context);
+  clearBufferingState(context);
+
+  if (context.hasCompletedPlayback) {
+    return;
+  }
+
+  emit(adapterApi, context, 'media_complete', { percent: 100 });
+  context.hasCompletedPlayback = true;
 }
 
 function shouldEmitBufferEvent(
