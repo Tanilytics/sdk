@@ -4,10 +4,10 @@ Tanilytics Analytics SDK is a TypeScript monorepo for a browser analytics client
 
 ## Packages
 
-- `@analytics-sdk/core`: browser analytics SDK
-- `@analytics-sdk/adapter-videojs`: Video.js adapter package scaffold
-- `@analytics-sdk/adapter-hlsjs`: hls.js adapter package scaffold
-- `@analytics-sdk/adapter-youtube`: YouTube iframe adapter for the core SDK
+- `tanilytics`: browser analytics SDK
+- `@tanilytics/adapter-videojs`: Video.js adapter package scaffold
+- `@tanilytics/adapter-hlsjs`: hls.js adapter package scaffold
+- `@tanilytics/adapter-youtube`: YouTube iframe adapter for the core SDK
 
 Today, the core package contains the main SDK implementation. The YouTube adapter is usable as a core extension, while the other media adapter packages are still minimal scaffolds.
 
@@ -27,7 +27,7 @@ Today, the core package contains the main SDK implementation. The YouTube adapte
 Package consumers install from npm:
 
 ```bash
-npm install @analytics-sdk/core
+npm install tanilytics
 ```
 
 For local repository development:
@@ -39,55 +39,55 @@ bun install
 ## Quick Start
 
 ```ts
-import analytics from '@analytics-sdk/core';
+import tanilytics from 'tanilytics';
 
-analytics.init({
+tanilytics.init({
   siteToken: 'sk_live_abc12345',
   endpoint: 'https://ingest.example.com/api/v1/events',
 });
 
-analytics.track('audio_downloaded', {
+tanilytics.track('audio_downloaded', {
   audioId: 'aud_123',
   format: 'mp3',
   source: 'player',
 });
 
-analytics.track('signup_clicked', {
+tanilytics.track('signup_clicked', {
   plan: 'pro',
 });
 ```
 
-You can also provide the ingestion endpoint through the `INGESTION_URL` environment variable instead of passing `endpoint` to `analytics.init()`.
+You can also provide the ingestion endpoint through the `INGESTION_URL` environment variable instead of passing `endpoint` to `tanilytics.init()`.
 
 ## Public API
 
-The current public API for `@analytics-sdk/core` is a default export object with:
+The current public API for `tanilytics` is a default export object with:
 
-- `analytics.init(config)`
-- `analytics.track(eventName, properties?)`
-- `analytics.flush()`
-- `analytics.destroy()`
-- `analytics.optOut()`
-- `analytics.optIn()`
-- `analytics.isOptedOut()`
-- `analytics.giveConsent()`
-- `analytics.withdrawConsent()`
-- `analytics.EventTypes`
-- `analytics.SDK_VERSION`
+- `tanilytics.init(config)`
+- `tanilytics.track(eventName, properties?)`
+- `tanilytics.flush()`
+- `tanilytics.destroy()`
+- `tanilytics.optOut()`
+- `tanilytics.optIn()`
+- `tanilytics.isOptedOut()`
+- `tanilytics.giveConsent()`
+- `tanilytics.withdrawConsent()`
+- `tanilytics.EventTypes`
+- `tanilytics.VERSION`
 
-The package also exports types including `AnalyticsConfig`, `EventType`, `EventProperties`, and `IngestionEvent`.
+The package also exports types including `TanilyticsConfig`, `EventType`, `EventProperties`, and `IngestionEvent`.
 
-`AnalyticsConfig` also supports `adapters?: readonly MediaAdapterInterface[]` for media extensions.
+`TanilyticsConfig` also supports `adapters?: readonly MediaAdapterInterface[]` for media extensions.
 
 ## Media Adapters
 
-Adapters are registered through `analytics.init()` and emit the core media event types through the same privacy, session, and queue pipeline.
+Adapters are registered through `tanilytics.init()` and emit the core media event types through the same privacy, session, and queue pipeline.
 
 ```ts
-import analytics from '@analytics-sdk/core';
-import { youtubeAdapter } from '@analytics-sdk/adapter-youtube';
+import tanilytics from 'tanilytics';
+import { youtubeAdapter } from '@tanilytics/adapter-youtube';
 
-analytics.init({
+tanilytics.init({
   siteToken: 'sk_live_abc12345',
   endpoint: 'https://ingest.example.com/api/v1/events',
   adapters: [youtubeAdapter()],
@@ -101,7 +101,7 @@ analytics.init({
 Manual tracking accepts any custom event name:
 
 ```ts
-analytics.track('audio_downloaded', {
+tanilytics.track('audio_downloaded', {
   audioId: 'aud_123',
   format: 'mp3',
 });
@@ -126,10 +126,10 @@ The SDK also emits fixed internal event types for autocapture and media adapters
 
 ## Configuration
 
-`analytics.init()` accepts this shape:
+`tanilytics.init()` accepts this shape:
 
 ```ts
-interface AnalyticsConfig {
+interface TanilyticsConfig {
   siteToken: string;
   endpoint?: string;
   flushInterval?: number;
@@ -166,13 +166,13 @@ Current defaults:
 Autocapture can be configured in two ways:
 
 ```ts
-analytics.init({
+tanilytics.init({
   siteToken: 'sk_live_abc12345',
   endpoint: 'https://ingest.example.com/api/v1/events',
   autocapture: true,
 });
 
-analytics.init({
+tanilytics.init({
   siteToken: 'sk_live_abc12345',
   endpoint: 'https://ingest.example.com/api/v1/events',
   autocapture: {
@@ -205,14 +205,14 @@ Validation rules currently enforced by the SDK include:
 The SDK exposes helpers for common privacy flows:
 
 ```ts
-import analytics from '@analytics-sdk/core';
+import tanilytics from 'tanilytics';
 
-analytics.optOut();
-analytics.optIn();
-analytics.giveConsent();
-analytics.withdrawConsent();
+tanilytics.optOut();
+tanilytics.optIn();
+tanilytics.giveConsent();
+tanilytics.withdrawConsent();
 
-console.log(analytics.isOptedOut());
+console.log(tanilytics.isOptedOut());
 ```
 
 Current privacy behavior:
@@ -251,19 +251,19 @@ Useful per-project commands:
 
 ```bash
 # core
-bunx nx build @analytics-sdk/core
-bunx nx test @analytics-sdk/core
-bunx nx lint @analytics-sdk/core
-bunx nx typecheck @analytics-sdk/core
+bunx nx build tanilytics
+bunx nx test tanilytics
+bunx nx lint tanilytics
+bunx nx typecheck tanilytics
 
 # single core test file
-bunx nx test @analytics-sdk/core -- --run src/config/validator.test.ts
+bunx nx test tanilytics -- --run src/config/validator.test.ts
 
 # single named core test
-bunx nx test @analytics-sdk/core -- --run src/config/validator.test.ts -t "throws when siteToken is missing"
+bunx nx test tanilytics -- --run src/config/validator.test.ts -t "throws when siteToken is missing"
 
 # adapter example
-bunx nx test @analytics-sdk/adapter-videojs -- --run src/lib/videojs.spec.ts
+bunx nx test @tanilytics/adapter-videojs -- --run src/lib/videojs.spec.ts
 ```
 
 ## Repository Structure

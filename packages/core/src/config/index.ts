@@ -1,8 +1,8 @@
 import { validate } from './validator';
 import { merge } from './merger';
-import type { AnalyticsConfig, ResolvedConfig } from './types';
+import type { TanilyticsConfig, ResolvedConfig } from './types';
 
-export type { AnalyticsConfig, ResolvedConfig } from './types';
+export type { TanilyticsConfig, ResolvedConfig } from './types';
 
 /**
  * The single function the Tracker calls.
@@ -10,7 +10,7 @@ export type { AnalyticsConfig, ResolvedConfig } from './types';
  * Merges second — returns complete resolved config.
  */
 export function validateAndMergeConfig(
-  config: AnalyticsConfig,
+  config: TanilyticsConfig,
 ): ResolvedConfig {
   validate(config);
   return merge(config);

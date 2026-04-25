@@ -24,7 +24,7 @@ export function writeOptOut(): void {
     localStorage.setItem(KEYS.OPT_OUT, '1');
   } catch {
     throw new Error(
-      '[AnalyticsSDK] Could not persist opt-out — localStorage is unavailable. ' +
+      '[Tanilytics] Could not persist opt-out — localStorage is unavailable. ' +
         'The opt-out will not survive a page reload.',
     );
   }
@@ -43,7 +43,7 @@ export function writeConsent(): void {
     localStorage.setItem(KEYS.CONSENT, '1');
   } catch {
     throw new Error(
-      '[AnalyticsSDK] Could not persist consent — localStorage is unavailable.',
+      '[Tanilytics] Could not persist consent — localStorage is unavailable.',
     );
   }
 }

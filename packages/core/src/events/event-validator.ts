@@ -22,7 +22,7 @@ export function validateProperties(
     Array.isArray(properties)
   ) {
     const warning =
-      '[AnalyticsSDK] track() received invalid properties. Expected an object.';
+      '[Tanilytics] track() received invalid properties. Expected an object.';
     warnings.push(warning);
 
     if (debug) {

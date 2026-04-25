@@ -1,5 +1,5 @@
 {
-  "name": "@analytics-sdk/adapter-youtube",
+  "name": "@tanilytics/adapter-youtube",
   "version": "0.3.6",
   "type": "module",
   "main": "./dist/index.esm.js",
@@ -26,7 +26,6 @@
   },
   "keywords": [
     "analytics",
-    "analytics-sdk",
     "youtube",
     "youtube-analytics",
     "video-analytics",
@@ -43,10 +42,10 @@
     ]
   },
   "peerDependencies": {
-    "@analytics-sdk/core": "^0.3.6"
+    "tanilytics": "^0.3.6"
   },
   "devDependencies": {
-    "@analytics-sdk/core": "^0.3.6",
+    "tanilytics": "^0.3.6",
     "vitest": "^4.0.9"
   }
 }

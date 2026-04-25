@@ -60,7 +60,7 @@ export function youtubeAdapter(
               contexts.set(iframe, context);
             } catch (error) {
               console.warn(
-                '[AnalyticsSDK] Failed to initialise YouTube player for iframe.',
+                '[Tanilytics] Failed to initialise YouTube player for iframe.',
                 iframe,
                 error,
               );
@@ -71,7 +71,7 @@ export function youtubeAdapter(
           if (!isActive(currentToken)) return;
 
           console.warn(
-            '[AnalyticsSDK] Failed to initialise media adapter "youtube".',
+            '[Tanilytics] Failed to initialise media adapter "youtube".',
             error,
           );
         });

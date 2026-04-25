@@ -10,7 +10,7 @@ export default defineConfig(() => ({
   //  plugins: [],
   // },
   test: {
-    name: '@analytics-sdk/core',
+    name: 'tanilytics',
     watch: false,
     globals: true,
     environment: 'node',

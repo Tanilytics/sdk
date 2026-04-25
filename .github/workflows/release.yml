@@ -120,12 +120,12 @@ jobs:
 
           youtubePackageJson.peerDependencies = {
             ...youtubePackageJson.peerDependencies,
-            '@analytics-sdk/core': `^${newVersion}`,
+            'tanilytics': `^${newVersion}`,
           };
 
           youtubePackageJson.devDependencies = {
             ...youtubePackageJson.devDependencies,
-            '@analytics-sdk/core': `^${newVersion}`,
+            'tanilytics': `^${newVersion}`,
           };
 
           fs.writeFileSync(
@@ -136,7 +136,7 @@ jobs:
 
           # Update version.ts so the SDK reports its own version correctly
           echo "// Updated automatically by the release pipeline — do not edit manually" > packages/core/src/version.ts
-          echo "export const SDK_VERSION = '$NEW';" >> packages/core/src/version.ts
+          echo "export const VERSION = '$NEW';" >> packages/core/src/version.ts
 
       # ── Rebuild with new version ──────────────────────────────────────────────
       # The version number is baked into the bundle at build time
@@ -144,25 +144,25 @@ jobs:
         run: npx nx run-many --target=build --all
 
       # ── Publish to npm ────────────────────────────────────────────────────────
-      - name: Publish @analytics-sdk/core
+      - name: Publish tanilytics
         working-directory: packages/core
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # - name: Publish @analytics-sdk/adapter-videojs
+      # - name: Publish @tanilytics/adapter-videojs
       #   working-directory: packages/media-adapters/videojs
       #   run: npm publish --access public
       #   env:
       #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # - name: Publish @analytics-sdk/adapter-hlsjs
+      # - name: Publish @tanilytics/adapter-hlsjs
       #   working-directory: packages/media-adapters/hlsjs
       #   run: npm publish --access public
       #   env:
       #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Publish @analytics-sdk/adapter-youtube
+      - name: Publish @tanilytics/adapter-youtube
         working-directory: packages/media-adapters/youtube
         run: npm publish --access public
         env:

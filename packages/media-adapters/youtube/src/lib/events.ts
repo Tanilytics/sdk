@@ -14,7 +14,7 @@ import type {
   YouTubePlayerEvent,
   VideoSnapshot,
 } from './types';
-import type { EventProperties } from '@analytics-sdk/core';
+import type { EventProperties } from 'tanilytics';
 
 interface CreatePlayerEventHandlersOptions {
   adapterApi: YouTubeMediaAdapterApi;
