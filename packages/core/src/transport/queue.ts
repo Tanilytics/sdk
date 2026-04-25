@@ -105,7 +105,7 @@ export class EventQueue {
   // Page unload handling
 
   private handleVisibilityChange(): void {
-    if (typeof document === 'undefined') return;
+    if (globalThis.document === undefined) return;
 
     // Fire when tab becomes hidden — user switched tabs or minimised
     if (document.visibilityState === 'hidden') {
@@ -143,8 +143,8 @@ export class EventQueue {
 
   private attachUnloadListeners(): void {
     if (
-      typeof document === 'undefined' ||
-      typeof globalThis.window === 'undefined'
+      globalThis.document === undefined ||
+      globalThis.window === undefined
     ) {
       return;
     }
@@ -155,8 +155,8 @@ export class EventQueue {
 
   private detachUnloadListeners(): void {
     if (
-      typeof document === 'undefined' ||
-      typeof globalThis.window === 'undefined'
+      globalThis.document === undefined ||
+      globalThis.window === undefined
     ) {
       return;
     }
