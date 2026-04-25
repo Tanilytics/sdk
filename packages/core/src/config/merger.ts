@@ -1,7 +1,7 @@
-import type { AnalyticsConfig, ResolvedConfig } from './types';
+import type { TanilyticsConfig, ResolvedConfig } from './types';
 import { DEFAULT_CONFIG, resolveDefaultEndpoint } from './defaults';
 
-export function merge(config: AnalyticsConfig): ResolvedConfig {
+export function merge(config: TanilyticsConfig): ResolvedConfig {
   const resolved: ResolvedConfig = {
     siteToken: config.siteToken,
     endpoint: resolveDefaultEndpoint(config.endpoint),
@@ -19,7 +19,7 @@ export function merge(config: AnalyticsConfig): ResolvedConfig {
   return deepFreeze(resolved);
 }
 
-function resolveAutocapture(config: AnalyticsConfig['autocapture']) {
+function resolveAutocapture(config: TanilyticsConfig['autocapture']) {
   if (config === undefined || config === true) {
     return { ...DEFAULT_CONFIG.autocapture };
   }

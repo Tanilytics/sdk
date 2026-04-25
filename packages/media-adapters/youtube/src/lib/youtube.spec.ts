@@ -473,7 +473,7 @@ describe('youtubeAdapter', () => {
 
     expect(youtubeApi.playerCtor).toHaveBeenCalledTimes(2);
     expect(warnSpy).toHaveBeenCalledWith(
-      '[AnalyticsSDK] Failed to initialise YouTube player for iframe.',
+      '[Tanilytics] Failed to initialise YouTube player for iframe.',
       firstIframe,
       expect.any(Error),
     );

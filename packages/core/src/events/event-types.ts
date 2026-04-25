@@ -7,8 +7,8 @@ import type { InternalEventType } from '../types';
  * They are intended for SDK-controlled internal events such as autocapture.
  *
  * @example
- * import analytics from '@analytics-sdk/core'
- * analytics.track('audio_downloaded', { format: 'mp3' })
+ * import tanilytics from 'tanilytics'
+ * tanilytics.track('audio_downloaded', { format: 'mp3' })
  */
 export const EventTypes = {
   PAGE_VIEW: 'page_view' as InternalEventType,

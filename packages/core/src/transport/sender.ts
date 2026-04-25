@@ -33,16 +33,14 @@ export async function sendBatch(
 
   if (result.success) {
     if (config.debug) {
-      console.info(
-        `[AnalyticsSDK] Sent ${events.length} event(s) successfully.`,
-      );
+      console.info(`[Tanilytics] Sent ${events.length} event(s) successfully.`);
     }
     return { ok: true, retryable: false };
   }
 
   if (config.debug) {
     console.warn(
-      `[AnalyticsSDK] Failed to send ${events.length} event(s) after ` +
+      `[Tanilytics] Failed to send ${events.length} event(s) after ` +
         `${result.attempts} attempt(s). ${result.finalError ?? ''}`,
     );
   }

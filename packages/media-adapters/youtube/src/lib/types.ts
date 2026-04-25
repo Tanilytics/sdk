@@ -1,4 +1,4 @@
-import type { EventProperties } from '@analytics-sdk/core';
+import type { EventProperties } from 'tanilytics';
 
 export type YouTubeMediaEventType =
   | 'media_play'

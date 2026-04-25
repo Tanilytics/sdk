@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import type { AnalyticsConfig } from './types';
+import type { TanilyticsConfig } from './types';
 import { validate } from './validator';
 
 function makeValidConfig(
-  overrides: Partial<AnalyticsConfig> = {},
-): AnalyticsConfig {
+  overrides: Partial<TanilyticsConfig> = {},
+): TanilyticsConfig {
   return {
     siteToken: 'sk_live_abc12345',
     ...overrides,
@@ -15,7 +15,7 @@ function makeValidConfig(
 describe('validate', () => {
   describe('siteToken', () => {
     it('throws when siteToken is missing', () => {
-      expect(() => validate({} as AnalyticsConfig)).toThrow(
+      expect(() => validate({} as TanilyticsConfig)).toThrow(
         /siteToken is required/,
       );
     });
@@ -134,7 +134,7 @@ describe('validate', () => {
       expect(() =>
         validate(
           makeValidConfig({
-            autocapture: null as unknown as AnalyticsConfig['autocapture'],
+            autocapture: null as unknown as TanilyticsConfig['autocapture'],
           }),
         ),
       ).toThrow(/autocapture must be a boolean or an object/);
@@ -180,7 +180,7 @@ describe('validate', () => {
       expect(() =>
         validate(
           makeValidConfig({
-            adapters: 'youtube' as unknown as AnalyticsConfig['adapters'],
+            adapters: 'youtube' as unknown as TanilyticsConfig['adapters'],
           }),
         ),
       ).toThrow(/adapters must be an array/);
@@ -194,7 +194,7 @@ describe('validate', () => {
               {
                 name: 'youtube',
                 attach: () => undefined,
-              } as unknown as NonNullable<AnalyticsConfig['adapters']>[number],
+              } as unknown as NonNullable<TanilyticsConfig['adapters']>[number],
             ],
           }),
         ),

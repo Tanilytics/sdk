@@ -23,7 +23,7 @@ export function validateIframe(iframe: HTMLIFrameElement): URL {
 
   if (!src) {
     throw new Error(
-      '[AnalyticsSDK] The YouTube adapter requires an iframe with a src attribute.',
+      '[Tanilytics] The YouTube adapter requires an iframe with a src attribute.',
     );
   }
 
@@ -31,25 +31,25 @@ export function validateIframe(iframe: HTMLIFrameElement): URL {
 
   if (!YOUTUBE_EMBED_HOSTS.has(parsed.hostname)) {
     throw new Error(
-      '[AnalyticsSDK] The YouTube adapter only supports youtube.com and youtube-nocookie.com embed iframes.',
+      '[Tanilytics] The YouTube adapter only supports youtube.com and youtube-nocookie.com embed iframes.',
     );
   }
 
   if (!parsed.pathname.startsWith('/embed')) {
     throw new Error(
-      '[AnalyticsSDK] The YouTube adapter only supports YouTube embed iframe URLs.',
+      '[Tanilytics] The YouTube adapter only supports YouTube embed iframe URLs.',
     );
   }
 
   if (parsed.searchParams.get('enablejsapi') !== '1') {
     throw new Error(
-      '[AnalyticsSDK] The YouTube adapter requires enablejsapi=1 on the iframe src.',
+      '[Tanilytics] The YouTube adapter requires enablejsapi=1 on the iframe src.',
     );
   }
 
   if ((parsed.searchParams.get('origin') ?? '').trim().length === 0) {
     throw new Error(
-      '[AnalyticsSDK] The YouTube adapter requires an origin query parameter on the iframe src.',
+      '[Tanilytics] The YouTube adapter requires an origin query parameter on the iframe src.',
     );
   }
 

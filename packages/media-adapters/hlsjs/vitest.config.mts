@@ -4,7 +4,7 @@ export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../../node_modules/.vite/packages/media-adapters/hlsjs',
   test: {
-    name: '@analytics-sdk/adapter-hlsjs',
+    name: '@tanilytics/adapter-hlsjs',
     watch: false,
     globals: true,
     environment: 'node',

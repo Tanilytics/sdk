@@ -1,31 +1,31 @@
-# @analytics-sdk/core
+# tanilytics
 
 Browser analytics SDK for Tanilytics.
 
 ## Installation
 
 ```bash
-npm install @analytics-sdk/core
+npm install tanilytics
 ```
 
 ## Quick Start
 
 ```ts
-import analytics from '@analytics-sdk/core';
+import tanilytics from 'tanilytics';
 
-analytics.init({
+tanilytics.init({
   siteToken: 'sk_live_abc12345',
   endpoint: 'https://ingest.example.com/api/v1/events',
 });
 
-analytics.track('audio_downloaded', {
+tanilytics.track('audio_downloaded', {
   audioId: 'aud_123',
   format: 'mp3',
   source: 'player',
 });
 ```
 
-You can also provide the ingestion endpoint through the `INGESTION_URL` environment variable instead of passing `endpoint` to `analytics.init()`.
+You can also provide the ingestion endpoint through the `INGESTION_URL` environment variable instead of passing `endpoint` to `tanilytics.init()`.
 
 ## Features
 
@@ -42,12 +42,12 @@ You can also provide the ingestion endpoint through the `INGESTION_URL` environm
 
 ### Initialize the SDK
 
-Call `analytics.init()` once at application startup.
+Call `tanilytics.init()` once at application startup.
 
 ```ts
-import analytics from '@analytics-sdk/core';
+import tanilytics from 'tanilytics';
 
-analytics.init({
+tanilytics.init({
   siteToken: 'sk_live_abc12345',
   endpoint: 'https://ingest.example.com/api/v1/events',
   compress: true,
@@ -65,7 +65,7 @@ Important runtime behavior:
 ### Track custom events
 
 ```ts
-analytics.track('signup_clicked', {
+tanilytics.track('signup_clicked', {
   plan: 'pro',
   source: 'pricing_page',
 });
@@ -80,7 +80,7 @@ Autocapture is enabled by default. You can leave it as-is, pass `false` to disab
 Enable everything:
 
 ```ts
-analytics.init({
+tanilytics.init({
   siteToken: 'sk_live_abc12345',
   endpoint: 'https://ingest.example.com/api/v1/events',
   autocapture: true,
@@ -90,7 +90,7 @@ analytics.init({
 Disable autocapture completely:
 
 ```ts
-analytics.init({
+tanilytics.init({
   siteToken: 'sk_live_abc12345',
   endpoint: 'https://ingest.example.com/api/v1/events',
   autocapture: false,
@@ -100,7 +100,7 @@ analytics.init({
 Or opt into individual features:
 
 ```ts
-analytics.init({
+tanilytics.init({
   siteToken: 'sk_live_abc12345',
   endpoint: 'https://ingest.example.com/api/v1/events',
   autocapture: {
@@ -115,13 +115,13 @@ analytics.init({
 
 ### Register media adapters
 
-Media adapters are configured through `analytics.init()` and run independently from built-in autocapture.
+Media adapters are configured through `tanilytics.init()` and run independently from built-in autocapture.
 
 ```ts
-import analytics from '@analytics-sdk/core';
-import { youtubeAdapter } from '@analytics-sdk/adapter-youtube';
+import tanilytics from 'tanilytics';
+import { youtubeAdapter } from '@tanilytics/adapter-youtube';
 
-analytics.init({
+tanilytics.init({
   siteToken: 'sk_live_abc12345',
   endpoint: 'https://ingest.example.com/api/v1/events',
   adapters: [youtubeAdapter()],
@@ -133,14 +133,14 @@ analytics.init({
 ### Privacy controls
 
 ```ts
-import analytics from '@analytics-sdk/core';
+import tanilytics from 'tanilytics';
 
-analytics.optOut();
-analytics.optIn();
-analytics.giveConsent();
-analytics.withdrawConsent();
+tanilytics.optOut();
+tanilytics.optIn();
+tanilytics.giveConsent();
+tanilytics.withdrawConsent();
 
-console.log(analytics.isOptedOut());
+console.log(tanilytics.isOptedOut());
 ```
 
 Current privacy behavior:
@@ -154,26 +154,26 @@ Current privacy behavior:
 
 The default export exposes:
 
-- `analytics.init(config)`
-- `analytics.track(eventName, properties?)`
-- `analytics.flush()`
-- `analytics.destroy()`
-- `analytics.optOut()`
-- `analytics.optIn()`
-- `analytics.isOptedOut()`
-- `analytics.giveConsent()`
-- `analytics.withdrawConsent()`
-- `analytics.EventTypes`
-- `analytics.SDK_VERSION`
+- `tanilytics.init(config)`
+- `tanilytics.track(eventName, properties?)`
+- `tanilytics.flush()`
+- `tanilytics.destroy()`
+- `tanilytics.optOut()`
+- `tanilytics.optIn()`
+- `tanilytics.isOptedOut()`
+- `tanilytics.giveConsent()`
+- `tanilytics.withdrawConsent()`
+- `tanilytics.EventTypes`
+- `tanilytics.VERSION`
 
-The package also exports types including `AnalyticsConfig`, `EventType`, `EventProperties`, `IngestionEvent`, `IngestionPayload`, `SessionContext`, `MediaAdapterInterface`, `MediaAdapterApi`, and `MediaEventType`.
+The package also exports types including `TanilyticsConfig`, `EventType`, `EventProperties`, `IngestionEvent`, `IngestionPayload`, `SessionContext`, `MediaAdapterInterface`, `MediaAdapterApi`, and `MediaEventType`.
 
 ## Event Model
 
 Manual tracking accepts any custom event name:
 
 ```ts
-analytics.track('audio_downloaded', {
+tanilytics.track('audio_downloaded', {
   audioId: 'aud_123',
   format: 'mp3',
 });
@@ -181,7 +181,7 @@ analytics.track('audio_downloaded', {
 
 These events are sent with `event_type: 'custom'` and a separate `event_name` field.
 
-The SDK also emits fixed internal event types for autocapture and adapters through `analytics.EventTypes`:
+The SDK also emits fixed internal event types for autocapture and adapters through `tanilytics.EventTypes`:
 
 - `page_view`
 - `page_leave`
@@ -198,10 +198,10 @@ The SDK also emits fixed internal event types for autocapture and adapters throu
 
 ## Configuration
 
-`analytics.init()` accepts this shape:
+`tanilytics.init()` accepts this shape:
 
 ```ts
-interface AnalyticsConfig {
+interface TanilyticsConfig {
   siteToken: string;
   endpoint?: string;
   flushInterval?: number;

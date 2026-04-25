@@ -19,6 +19,6 @@ export function generateSecureUuid(): string {
   }
 
   throw new Error(
-    '[AnalyticsSDK] Secure random ID generation is unavailable in this environment. Web Crypto is required.',
+    '[Tanilytics] Secure random ID generation is unavailable in this environment. Web Crypto is required.',
   );
 }

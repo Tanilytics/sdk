@@ -68,10 +68,10 @@ For public API changes, review `packages/core/src/index.ts` and package `exports
 
 This repo uses npm workspaces with Nx.
 
-- `packages/core/`: `@analytics-sdk/core`, the main browser analytics SDK
-- `packages/media-adapters/videojs/`: `@analytics-sdk/adapter-videojs`
-- `packages/media-adapters/hlsjs/`: `@analytics-sdk/adapter-hlsjs`
-- `packages/media-adapters/youtube/`: `@analytics-sdk/adapter-youtube`
+- `packages/core/`: `tanilytics`, the main browser analytics SDK
+- `packages/media-adapters/videojs/`: `@tanilytics/adapter-videojs`
+- `packages/media-adapters/hlsjs/`: `@tanilytics/adapter-hlsjs`
+- `packages/media-adapters/youtube/`: `@tanilytics/adapter-youtube`
 - `nx.json`: Nx target and plugin configuration
 - `tsconfig.json` and `tsconfig.base.json`: workspace TypeScript settings
 - `eslint.config.mjs`: shared flat ESLint config
@@ -92,18 +92,18 @@ Main workspace commands:
 
 Common per-project commands:
 
-- build core: `bunx nx build @analytics-sdk/core`
-- test core: `bunx nx test @analytics-sdk/core`
-- lint core: `bunx nx lint @analytics-sdk/core`
-- typecheck core: `bunx nx typecheck @analytics-sdk/core`
-- build adapter: `bunx nx build @analytics-sdk/adapter-videojs`
-- test adapter: `bunx nx test @analytics-sdk/adapter-videojs`
+- build core: `bunx nx build tanilytics`
+- test core: `bunx nx test tanilytics`
+- lint core: `bunx nx lint tanilytics`
+- typecheck core: `bunx nx typecheck tanilytics`
+- build adapter: `bunx nx build @tanilytics/adapter-videojs`
+- test adapter: `bunx nx test @tanilytics/adapter-videojs`
 
 Single-test commands:
 
-- one core test file: `bunx nx test @analytics-sdk/core -- --run src/config/validator.test.ts`
-- one named core test: `bunx nx test @analytics-sdk/core -- --run src/config/validator.test.ts -t "throws when siteToken is missing"`
-- one adapter test file: `bunx nx test @analytics-sdk/adapter-videojs -- --run src/lib/videojs.spec.ts`
+- one core test file: `bunx nx test tanilytics -- --run src/config/validator.test.ts`
+- one named core test: `bunx nx test tanilytics -- --run src/config/validator.test.ts -t "throws when siteToken is missing"`
+- one adapter test file: `bunx nx test @tanilytics/adapter-videojs -- --run src/lib/videojs.spec.ts`
 
 Implementation details:
 

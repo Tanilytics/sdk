@@ -1,6 +1,6 @@
 import type { MediaAdapterInterface } from '../types';
 
-export interface AnalyticsConfig {
+export interface TanilyticsConfig {
   siteToken: string;
   endpoint?: string;
   flushInterval?: number;

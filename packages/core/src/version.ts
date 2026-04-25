@@ -1,2 +1,2 @@
 // Updated automatically by the release pipeline — do not edit manually
-export const SDK_VERSION = '0.3.6';
+export const VERSION = '0.3.6';

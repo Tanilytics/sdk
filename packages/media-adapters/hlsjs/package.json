@@ -1,5 +1,5 @@
 {
-  "name": "@analytics-sdk/adapter-hlsjs",
+  "name": "@tanilytics/adapter-hlsjs",
   "version": "0.3.6",
   "type": "module",
   "main": "./dist/index.esm.js",

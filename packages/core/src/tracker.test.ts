@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { AnalyticsConfig } from './config/types';
-import { AnalyticsTracker } from './tracker';
+import type { TanilyticsConfig } from './config/types';
+import { TanilyticsTracker } from './tracker';
 import { EventQueue } from './transport';
 import type { MediaAdapterApi, MediaAdapterInterface } from './types';
 
@@ -41,9 +41,9 @@ function stubBrowserEnv({
 }
 
 function createTracker(
-  config: Partial<AnalyticsConfig> = {},
-): AnalyticsTracker {
-  return new AnalyticsTracker({
+  config: Partial<TanilyticsConfig> = {},
+): TanilyticsTracker {
+  return new TanilyticsTracker({
     siteToken: 'sk_live_abc12345',
     endpoint: 'https://ingest.example.com/api/v1/events',
     autocapture: {
@@ -57,7 +57,7 @@ function createTracker(
   });
 }
 
-describe('AnalyticsTracker', () => {
+describe('TanilyticsTracker', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();

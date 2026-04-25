@@ -16,13 +16,13 @@ export function resolveOptions(
     !(options.iframe instanceof HTMLIFrameElement)
   ) {
     throw new Error(
-      '[AnalyticsSDK] The YouTube adapter requires iframe to be an HTMLIFrameElement.',
+      '[Tanilytics] The YouTube adapter requires iframe to be an HTMLIFrameElement.',
     );
   }
 
   const progressPollMs = options.progressPollMs ?? DEFAULT_PROGRESS_POLL_MS;
   if (!Number.isInteger(progressPollMs) || progressPollMs < 100) {
-    throw new Error('[AnalyticsSDK] progressPollMs must be an integer >= 100.');
+    throw new Error('[Tanilytics] progressPollMs must be an integer >= 100.');
   }
 
   const seekThresholdSeconds =
@@ -30,7 +30,7 @@ export function resolveOptions(
 
   if (seekThresholdSeconds <= 0) {
     throw new Error(
-      '[AnalyticsSDK] seekThresholdSeconds must be greater than 0.',
+      '[Tanilytics] seekThresholdSeconds must be greater than 0.',
     );
   }
 
@@ -55,7 +55,7 @@ function normaliseProgressPercentages(
 
   if (uniqueSortedValues.length === 0) {
     throw new Error(
-      '[AnalyticsSDK] progressPercentages must include at least one integer between 1 and 100.',
+      '[Tanilytics] progressPercentages must include at least one integer between 1 and 100.',
     );
   }
 

@@ -4,7 +4,7 @@ export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../node_modules/.vite/packages/core',
   test: {
-    name: '@analytics-sdk/core',
+    name: 'tanilytics',
     watch: false,
     globals: true,
     environment: 'node',

@@ -5,7 +5,7 @@ import type {
   MediaAdapterInterface,
   MediaEventType,
 } from './types';
-import type { AnalyticsConfig, ResolvedConfig } from './config/types';
+import type { TanilyticsConfig, ResolvedConfig } from './config/types';
 import { validateAndMergeConfig } from './config';
 import { configurePrivacy, isTrackingAllowed } from './privacy';
 import { SessionManager } from './session';
@@ -32,7 +32,7 @@ import {
   resetTimeOnPage,
 } from './autocapture';
 import { EventTypes } from './events/event-types';
-import { SDK_VERSION } from './version';
+import { VERSION } from './version';
 
 // Module-level singleton
 //
@@ -41,7 +41,7 @@ import { SDK_VERSION } from './version';
 // so it is scoped to the SDK's own module closure and cannot be
 // tampered with by external code.
 
-let _instance: AnalyticsTracker | null = null;
+let _instance: TanilyticsTracker | null = null;
 
 // Public module-level functions
 //
@@ -53,20 +53,20 @@ let _instance: AnalyticsTracker | null = null;
  * Call this once at application startup.
  *
  * @example
- * import analytics from '@analytics-sdk/core'
- * analytics.init({ siteToken: 'sk_live_abc123' })
+ * import tanilytics from 'tanilytics'
+ * tanilytics.init({ siteToken: 'sk_live_abc123' })
  */
-export function init(config: AnalyticsConfig): AnalyticsTracker {
+export function init(config: TanilyticsConfig): TanilyticsTracker {
   if (_instance !== null) {
     console.warn(
-      '[AnalyticsSDK] init() was called more than once. ' +
+      '[Tanilytics] init() was called more than once. ' +
         'The second call has been ignored. ' +
         'If you need to re-initialise, call destroy() first.',
     );
     return _instance;
   }
 
-  _instance = new AnalyticsTracker(config);
+  _instance = new TanilyticsTracker(config);
   return _instance;
 }
 
@@ -74,13 +74,13 @@ export function init(config: AnalyticsConfig): AnalyticsTracker {
  * Fires a custom tracking event manually.
  *
  * @example
- * import analytics from '@analytics-sdk/core'
- * analytics.track('audio_downloaded', { format: 'mp3' })
+ * import tanilytics from 'tanilytics'
+ * tanilytics.track('audio_downloaded', { format: 'mp3' })
  */
 export function track(eventName: string, properties?: EventProperties): void {
   if (_instance === null) {
     console.warn(
-      '[AnalyticsSDK] track() was called before init(). ' +
+      '[Tanilytics] track() was called before init(). ' +
         'The event has been dropped. ' +
         'Ensure init() is called at application startup.',
     );
@@ -122,20 +122,20 @@ export function destroy(): void {
   _instance = null;
 }
 
-// AnalyticsTracker class
+// TanilyticsTracker class
 //
 // The orchestrator. Creates and wires all modules together.
 // Consumers never interact with this class directly — they use the
 // module-level functions above.
 
-export class AnalyticsTracker {
+export class TanilyticsTracker {
   private readonly config: ResolvedConfig;
   private readonly session: SessionManager;
   private readonly queue: EventQueue;
   private readonly adapters: readonly MediaAdapterInterface[];
   private isDestroyed = false;
 
-  constructor(userConfig: AnalyticsConfig) {
+  constructor(userConfig: TanilyticsConfig) {
     // Step 1: Validate and resolve config
     // This is the first thing that runs.
     // If config is invalid, the constructor throws immediately
@@ -250,7 +250,7 @@ export class AnalyticsTracker {
             error instanceof Error ? error.message : 'Unknown adapter error.';
 
           throw new Error(
-            `[AnalyticsSDK] Failed to attach media adapter "${adapter.name}". ${message}`,
+            `[Tanilytics] Failed to attach media adapter "${adapter.name}". ${message}`,
             { cause: error },
           );
         }
@@ -261,7 +261,7 @@ export class AnalyticsTracker {
     }
 
     if (this.config.debug) {
-      console.info(`[AnalyticsSDK] Initialised v${SDK_VERSION}`, {
+      console.info(`[Tanilytics] Initialised v${VERSION}`, {
         siteToken: this.config.siteToken.slice(0, 8) + '...',
         endpoint: this.config.endpoint,
         sessionId: this.session.getSnapshot().sessionId,
@@ -328,7 +328,7 @@ export class AnalyticsTracker {
     if (this.isDestroyed) {
       if (this.config.debug) {
         console.warn(
-          '[AnalyticsSDK] track() called after destroy() — event dropped.',
+          '[Tanilytics] track() called after destroy() — event dropped.',
         );
       }
       return;
@@ -338,7 +338,7 @@ export class AnalyticsTracker {
     if (!isTrackingAllowed()) {
       if (this.config.debug) {
         console.info(
-          `[AnalyticsSDK] Event "${logLabel}" blocked by privacy settings.`,
+          `[Tanilytics] Event "${logLabel}" blocked by privacy settings.`,
         );
       }
       return;
@@ -358,7 +358,7 @@ export class AnalyticsTracker {
     );
 
     if (this.config.debug) {
-      console.info('[AnalyticsSDK] Queuing event:', event);
+      console.info('[Tanilytics] Queuing event:', event);
     }
 
     // Enqueue — the queue handles batching, timing, and sending
@@ -395,7 +395,7 @@ export class AnalyticsTracker {
       } catch (error) {
         if (this.config.debug) {
           console.warn(
-            `[AnalyticsSDK] Failed to detach media adapter "${adapter.name}".`,
+            `[Tanilytics] Failed to detach media adapter "${adapter.name}".`,
             error,
           );
         }
@@ -406,25 +406,25 @@ export class AnalyticsTracker {
     this.queue.destroy();
 
     if (this.config.debug) {
-      console.info('[AnalyticsSDK] Destroyed.');
+      console.info('[Tanilytics] Destroyed.');
     }
   }
 }
 
 function validateCustomEventName(eventName: string): string {
   if (typeof eventName !== 'string') {
-    throw new TypeError('[AnalyticsSDK] track() event name must be a string.');
+    throw new TypeError('[Tanilytics] track() event name must be a string.');
   }
 
   const trimmedEventName = eventName.trim();
 
   if (trimmedEventName.length === 0) {
-    throw new Error('[AnalyticsSDK] track() event name cannot be empty.');
+    throw new Error('[Tanilytics] track() event name cannot be empty.');
   }
 
   if (trimmedEventName.length > 100) {
     throw new Error(
-      `[AnalyticsSDK] track() event name is too long. Received ${trimmedEventName.length} characters; maximum is 100.`,
+      `[Tanilytics] track() event name is too long. Received ${trimmedEventName.length} characters; maximum is 100.`,
     );
   }
 

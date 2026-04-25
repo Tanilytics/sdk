@@ -11,7 +11,7 @@ module.exports = withNx(
   {
     output: {
       // Required for IIFE builds so the bundle is exposed on window.
-      name: 'AnalyticsSdkCore',
+      name: 'Tanilytics',
     },
   },
 );

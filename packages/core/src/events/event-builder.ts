@@ -57,7 +57,7 @@ function buildBaseEvent(
 ): IngestionEvent {
   if (_siteToken.trim().length === 0) {
     throw new Error(
-      '[AnalyticsSDK] Site token is not configured. ' +
+      '[Tanilytics] Site token is not configured. ' +
         'Ensure init() has been called before tracking events.',
     );
   }

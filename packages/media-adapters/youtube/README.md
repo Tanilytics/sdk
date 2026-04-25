@@ -1,11 +1,11 @@
-# @analytics-sdk/adapter-youtube
+# @tanilytics/adapter-youtube
 
-YouTube iframe adapter for `@analytics-sdk/core`.
+YouTube iframe adapter for `tanilytics`.
 
 ## Installation
 
 ```bash
-npm install @analytics-sdk/core @analytics-sdk/adapter-youtube
+npm install tanilytics @tanilytics/adapter-youtube
 ```
 
 ## Usage
@@ -21,10 +21,10 @@ Your iframe must use a YouTube embed URL with both `enablejsapi=1` and `origin`.
 ```
 
 ```ts
-import analytics from '@analytics-sdk/core';
-import { youtubeAdapter } from '@analytics-sdk/adapter-youtube';
+import tanilytics from 'tanilytics';
+import { youtubeAdapter } from '@tanilytics/adapter-youtube';
 
-analytics.init({
+tanilytics.init({
   siteToken: 'sk_live_abc12345',
   endpoint: 'https://ingest.example.com/api/v1/events',
   adapters: [youtubeAdapter()],
@@ -37,7 +37,7 @@ analytics.init({
 const iframe = document.querySelector<HTMLIFrameElement>('#hero-video');
 
 if (iframe !== null) {
-  analytics.init({
+  tanilytics.init({
     siteToken: 'sk_live_abc12345',
     endpoint: 'https://ingest.example.com/api/v1/events',
     adapters: [youtubeAdapter({ iframe })],

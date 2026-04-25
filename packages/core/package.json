@@ -1,5 +1,5 @@
 {
-  "name": "@analytics-sdk/core",
+  "name": "tanilytics",
   "version": "0.3.6",
   "type": "module",
   "main": "./dist/index.esm.js",
@@ -26,7 +26,6 @@
   },
   "keywords": [
     "analytics",
-    "analytics-sdk",
     "browser-analytics",
     "web-analytics",
     "event-tracking",
