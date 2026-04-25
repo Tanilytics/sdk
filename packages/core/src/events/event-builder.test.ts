@@ -13,6 +13,10 @@ import {
 import { EventTypes } from './event-types';
 
 function stubBrowserGlobals() {
+  vi.stubGlobal('location', {
+    href: 'https://example.com/path?a=1&utm_source=news&utm_medium=email&utm_campaign=spring#cta',
+  });
+
   vi.stubGlobal('window', {
     location: {
       href: 'https://example.com/path?a=1&utm_source=news&utm_medium=email&utm_campaign=spring#cta',
@@ -131,6 +135,7 @@ describe('events/event-builder', () => {
   });
 
   it('falls back to safe defaults when browser globals are unavailable', () => {
+    vi.stubGlobal('location', undefined);
     vi.stubGlobal('window', undefined);
     vi.stubGlobal('document', undefined);
     vi.stubGlobal('navigator', undefined);

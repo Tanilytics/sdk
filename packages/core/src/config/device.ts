@@ -2,7 +2,11 @@ export type DeviceType = 'desktop' | 'mobile' | 'tablet' | 'unknown';
 
 function readUserAgent(): string {
   try {
-    return typeof navigator !== 'undefined' ? navigator.userAgent || '' : '';
+    if (typeof navigator === 'undefined') {
+      return '';
+    }
+
+    return navigator.userAgent || '';
   } catch {
     return '';
   }

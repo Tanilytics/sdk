@@ -14,6 +14,7 @@ function stubBrowserEnv({
   referrer?: string;
   eventId?: string;
 }): void {
+  vi.stubGlobal('location', { href });
   vi.stubGlobal('window', {
     location: { href },
     screen: { width: 1920, height: 1080 },

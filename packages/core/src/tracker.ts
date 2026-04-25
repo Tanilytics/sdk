@@ -5,9 +5,8 @@ import type {
   MediaAdapterInterface,
   MediaEventType,
 } from './types';
-import type { AnalyticsConfig } from './config/types';
+import type { AnalyticsConfig, ResolvedConfig } from './config/types';
 import { validateAndMergeConfig } from './config';
-import type { ResolvedConfig } from './config/types';
 import { configurePrivacy, isTrackingAllowed } from './privacy';
 import { SessionManager } from './session';
 import {

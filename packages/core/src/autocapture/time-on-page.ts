@@ -32,7 +32,7 @@ export function attachTimeOnPageTracker(opts: TimeOnPageOptions): void {
   _onPageHide = handlePageHide;
 
   document.addEventListener('visibilitychange', _onVisibilityChange);
-  window.addEventListener('pagehide', _onPageHide);
+  globalThis.addEventListener('pagehide', _onPageHide);
 }
 
 export function detachTimeOnPageTracker(): void {
@@ -45,7 +45,7 @@ export function detachTimeOnPageTracker(): void {
   }
 
   if (_onPageHide !== null) {
-    window.removeEventListener('pagehide', _onPageHide);
+    globalThis.removeEventListener('pagehide', _onPageHide);
     _onPageHide = null;
   }
 

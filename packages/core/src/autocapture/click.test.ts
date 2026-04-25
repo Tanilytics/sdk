@@ -84,6 +84,18 @@ describe('Click tracking', () => {
     expect(mockTrack).not.toHaveBeenCalled();
   });
 
+  it('tracks explicitly marked elements via data-analytics-track', () => {
+    document.body.innerHTML = `
+      <div data-analytics-track>Track this</div>
+    `;
+    document.querySelector('div')!.click();
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      'click',
+      expect.objectContaining({ tag: 'div', text: 'Track this' }),
+    );
+  });
+
   it('truncates long text to 50 characters', () => {
     const longText = 'A'.repeat(100);
     document.body.innerHTML = `<button>${longText}</button>`;

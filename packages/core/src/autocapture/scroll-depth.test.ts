@@ -48,14 +48,14 @@ beforeEach(() => {
   mockTrack.mockClear();
   document.body.innerHTML = '';
 
-  // Create a proper constructor function that works with 'new' operator
-  class IntersectionObserverMock extends MockIntersectionObserver {
-    constructor(cb: IntersectionObserverCallback) {
-      super(cb);
-      // eslint-disable-next-line @typescript-eslint/no-this-alias
-      mockObserver = this;
-    }
-  }
+  // Return the shared mock instance while still supporting `new IntersectionObserver(...)`.
+  const IntersectionObserverMock = function (
+    this: unknown,
+    cb: IntersectionObserverCallback,
+  ) {
+    mockObserver = new MockIntersectionObserver(cb);
+    return mockObserver;
+  } as unknown as typeof IntersectionObserver;
 
   vi.stubGlobal('IntersectionObserver', IntersectionObserverMock);
 
@@ -70,6 +70,7 @@ afterEach(() => {
 describe('Scroll depth tracking', () => {
   it('fires scroll event when sentinel becomes visible', () => {
     const sentinel = document.querySelector('[data-analytics-sentinel="25"]')!;
+    expect((sentinel as HTMLElement).dataset.analyticsSentinel).toBe('25');
     mockObserver.trigger(sentinel);
 
     expect(mockTrack).toHaveBeenCalledWith(

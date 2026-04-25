@@ -93,7 +93,7 @@ function attachProperties(
 
 function readUrl(): string {
   try {
-    const url = new URL(window.location.href);
+    const url = new URL(globalThis.location.href);
 
     // clean up the url to return only canonical URL string
     url.search = '';
@@ -119,7 +119,7 @@ function readUtmParameters(): {
   utmCampaign?: string;
 } {
   try {
-    const params = new URL(window.location.href).searchParams;
+    const params = new URL(globalThis.location.href).searchParams;
 
     return {
       utmSource: params.get('utm_source') ?? undefined,

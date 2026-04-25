@@ -29,7 +29,7 @@ afterEach(() => {
 describe('Time on page tracking', () => {
   it('fires page_leave event on page hide', () => {
     vi.advanceTimersByTime(5000);
-    window.dispatchEvent(new Event('pagehide'));
+    globalThis.dispatchEvent(new Event('pagehide'));
 
     expect(mockTrack).toHaveBeenCalledWith(
       'page_leave',
@@ -53,7 +53,7 @@ describe('Time on page tracking', () => {
 
     vi.advanceTimersByTime(2000);
 
-    window.dispatchEvent(new Event('pagehide'));
+    globalThis.dispatchEvent(new Event('pagehide'));
 
     const props = mockTrack.mock.calls[0][1];
     // Should be ~5000ms not ~15000ms
@@ -63,7 +63,7 @@ describe('Time on page tracking', () => {
 
   it('does not fire for very short visits under 1 second', () => {
     vi.advanceTimersByTime(500);
-    window.dispatchEvent(new Event('pagehide'));
+    globalThis.dispatchEvent(new Event('pagehide'));
     expect(mockTrack).not.toHaveBeenCalled();
   });
 
@@ -73,7 +73,7 @@ describe('Time on page tracking', () => {
 
     // Fire pagehide to accumulate the 5000ms (calls accumulateActiveTime + flushActiveTime)
     // Note: flushActiveTime will fire the event and reset _activeTime back to 0
-    window.dispatchEvent(new Event('pagehide'));
+    globalThis.dispatchEvent(new Event('pagehide'));
 
     // Should have fired for the previous page
     expect(mockTrack).toHaveBeenCalledTimes(1);
@@ -88,7 +88,7 @@ describe('Time on page tracking', () => {
 
     // Fresh timer for new page
     vi.advanceTimersByTime(3000);
-    window.dispatchEvent(new Event('pagehide'));
+    globalThis.dispatchEvent(new Event('pagehide'));
 
     const props = mockTrack.mock.calls[0][1];
     expect(props.duration).toBeLessThan(4000);
