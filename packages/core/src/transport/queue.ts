@@ -142,10 +142,7 @@ export class EventQueue {
   }
 
   private attachUnloadListeners(): void {
-    if (
-      globalThis.document === undefined ||
-      globalThis.window === undefined
-    ) {
+    if (globalThis.document === undefined || globalThis.window === undefined) {
       return;
     }
 
@@ -154,10 +151,7 @@ export class EventQueue {
   }
 
   private detachUnloadListeners(): void {
-    if (
-      globalThis.document === undefined ||
-      globalThis.window === undefined
-    ) {
+    if (globalThis.document === undefined || globalThis.window === undefined) {
       return;
     }
 
