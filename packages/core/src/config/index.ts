@@ -2,7 +2,7 @@ import { validate } from './validator';
 import { merge } from './merger';
 import type { AnalyticsConfig, ResolvedConfig } from './types';
 
-export type { AnalyticsConfig, ResolvedConfig };
+export type { AnalyticsConfig, ResolvedConfig } from './types';
 
 /**
  * The single function the Tracker calls.

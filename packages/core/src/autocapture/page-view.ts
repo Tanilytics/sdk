@@ -24,7 +24,7 @@ let _track: TrackFn | null = null;
 
 export function attachPageViewTracker(opts: PageViewTrackerOptions): void {
   _track = opts.track;
-  _lastUrl = window.location.href;
+  _lastUrl = globalThis.location.href;
 
   patchHistory();
   attachPopStateListener();
@@ -81,12 +81,12 @@ function restoreHistory(): void {
 
 function attachPopStateListener(): void {
   _onPopState = () => handleNavigation('pop');
-  window.addEventListener('popstate', _onPopState);
+  globalThis.addEventListener('popstate', _onPopState);
 }
 
 function detachPopStateListener(): void {
   if (_onPopState !== null) {
-    window.removeEventListener('popstate', _onPopState);
+    globalThis.removeEventListener('popstate', _onPopState);
     _onPopState = null;
   }
 }
@@ -101,8 +101,8 @@ function handleNavigation(type: NavigationType): void {
 }
 
 function fireIfUrlChanged(type: NavigationType): void {
-  const currentUrl = window.location.href;
-  const currentPathname = window.location.pathname;
+  const currentUrl = globalThis.location.href;
+  const currentPathname = globalThis.location.pathname;
   const lastPathname = extractPathname(_lastUrl);
 
   if (currentUrl === _lastUrl) return;

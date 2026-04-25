@@ -46,6 +46,9 @@ function createBrowserHarness(initialHref = 'https://example.com/start') {
   };
 
   vi.stubGlobal('window', windowObj);
+  vi.stubGlobal('location', location);
+  vi.stubGlobal('addEventListener', windowObj.addEventListener);
+  vi.stubGlobal('removeEventListener', windowObj.removeEventListener);
   vi.stubGlobal('history', historyObj);
   vi.stubGlobal('document', { title: 'Initial title' });
 

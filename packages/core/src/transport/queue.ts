@@ -142,21 +142,27 @@ export class EventQueue {
   }
 
   private attachUnloadListeners(): void {
-    if (typeof document === 'undefined' || typeof window === 'undefined') {
+    if (
+      typeof document === 'undefined' ||
+      typeof globalThis.window === 'undefined'
+    ) {
       return;
     }
 
     document.addEventListener('visibilitychange', this.onVisibilityChange);
-    window.addEventListener('pagehide', this.onPageHide);
+    globalThis.window.addEventListener('pagehide', this.onPageHide);
   }
 
   private detachUnloadListeners(): void {
-    if (typeof document === 'undefined' || typeof window === 'undefined') {
+    if (
+      typeof document === 'undefined' ||
+      typeof globalThis.window === 'undefined'
+    ) {
       return;
     }
 
     document.removeEventListener('visibilitychange', this.onVisibilityChange);
-    window.removeEventListener('pagehide', this.onPageHide);
+    globalThis.window.removeEventListener('pagehide', this.onPageHide);
   }
 
   private takeNextBatch(): QueuedEvent[] {

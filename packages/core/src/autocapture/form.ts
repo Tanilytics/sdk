@@ -44,7 +44,7 @@ function handleSubmit(event: SubmitEvent): void {
   if (hasPasswordField(form)) return;
 
   // Never track forms explicitly opted out
-  if (form.hasAttribute('data-analytics-ignore')) return;
+  if (form.dataset.analyticsIgnore !== undefined) return;
 
   _track(EventTypes.FORM_SUBMIT, {
     eventName: 'form_submit',

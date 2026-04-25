@@ -91,10 +91,10 @@ function findTrackableElement(target: HTMLElement): HTMLElement | null {
     if (!current) return null;
 
     // Explicitly ignored element
-    if (current.hasAttribute('data-analytics-ignore')) return null;
+    if (current.dataset.analyticsIgnore !== undefined) return null;
 
     // Explicitly tracked element
-    if (current.hasAttribute('data-analytics-track')) return current;
+    if (current.dataset.analyticsTrack !== undefined) return current;
 
     // Naturally trackable element
     if (TRACKED_TAGS.has(current.tagName)) return current;
@@ -142,7 +142,7 @@ function getElementText(element: HTMLElement): string {
     ''
   )
     .trim()
-    .replace(/\s+/g, ' ');
+    .replaceAll(/\s+/g, ' ');
 
   return text.slice(0, MAX_TEXT_LENGTH);
 }
@@ -150,7 +150,7 @@ function getElementText(element: HTMLElement): string {
 function isExternalLink(href: string): boolean {
   try {
     const url = new URL(href);
-    return url.hostname !== window.location.hostname;
+    return url.hostname !== globalThis.location.hostname;
   } catch {
     return false;
   }

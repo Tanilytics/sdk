@@ -77,7 +77,7 @@ function placeSentinels(): void {
   MILESTONES.forEach((milestone) => {
     const sentinel = document.createElement('div');
 
-    sentinel.setAttribute('data-analytics-sentinel', String(milestone));
+    sentinel.dataset.analyticsSentinel = String(milestone);
     sentinel.setAttribute('aria-hidden', 'true');
 
     // Position absolutely at the milestone depth
@@ -101,7 +101,7 @@ function placeSentinels(): void {
 function removeSentinels(): void {
   _sentinels.forEach((sentinel) => {
     if (sentinel.parentNode) {
-      sentinel.parentNode.removeChild(sentinel);
+      sentinel.remove();
     }
     _observer?.unobserve(sentinel);
   });
@@ -114,10 +114,11 @@ function handleIntersection(entries: IntersectionObserverEntry[]): void {
   entries.forEach((entry) => {
     if (!entry.isIntersecting) return;
 
-    const milestoneStr = entry.target.getAttribute('data-analytics-sentinel');
+    const milestoneStr = (entry.target as HTMLElement).dataset
+      .analyticsSentinel;
     if (!milestoneStr) return;
 
-    const milestone = parseInt(milestoneStr, 10) as Milestone;
+    const milestone = Number.parseInt(milestoneStr, 10) as Milestone;
 
     // Fire each milestone exactly once per page view
     if (_milestonesReached.has(milestone)) return;

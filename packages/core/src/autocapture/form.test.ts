@@ -80,6 +80,17 @@ describe('Form tracking', () => {
     expect(mockTrack).not.toHaveBeenCalled();
   });
 
+  it('respects data-analytics-ignore attribute values', () => {
+    document.body.innerHTML = `
+      <form data-analytics-ignore="true">
+        <input type="text" />
+        <button type="submit">Submit</button>
+      </form>
+    `;
+    submitForm(document.querySelector('form')!);
+    expect(mockTrack).not.toHaveBeenCalled();
+  });
+
   it('does not track after detach', () => {
     detachFormTracker();
     document.body.innerHTML = `
