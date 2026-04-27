@@ -1,33 +1,29 @@
-# Tanilytics Analytics SDK
+<div align="center">
+  <h1>Tanilytics SDK</h1>
+</div>
 
-Tanilytics Analytics SDK is a TypeScript monorepo for a browser analytics client and related media adapter packages.
+<div align="center">
+  <h3>Lightweight browser analytics for modern web applications.</h3>
+</div>
 
-## Packages
+![npm](https://img.shields.io/npm/dm/tanilytics) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-- `tanilytics`: browser analytics SDK
-- `@tanilytics/adapter-videojs`: Video.js adapter package scaffold
-- `@tanilytics/adapter-hlsjs`: hls.js adapter package scaffold
-- `@tanilytics/adapter-youtube`: YouTube iframe adapter for the core SDK
+Tanilytics is a TypeScript SDK for browser analytics. It helps you track user interactions, page views, and media events with a small, predictable API — all while respecting user privacy and degrading safely around browser APIs.
 
-Today, the core package contains the main SDK implementation. The YouTube adapter is usable as a core extension, while the other media adapter packages are still minimal scaffolds.
+**Documentation**: To learn more about Tanilytics, check out the packages and examples below.
 
-## Core SDK Features
+## ⚡️ Quick Install
 
-- one-time SDK initialization with a module-level singleton
-- manual event tracking with typed event names
-- automatic page view tracking, including SPA navigation
-- autocapture for clicks, form submissions, scroll depth, and time on page
-- batching, queued delivery, retry handling, and `sendBeacon` on unload
-- session management with session persistence in browser storage
-- privacy controls for opt-out, consent, and Do Not Track support
-- strict TypeScript public API
-
-## Installation
-
-Package consumers install from npm:
+You can use npm, pnpm, yarn or bun to install Tanilytics:
 
 ```bash
 npm install tanilytics
+```
+
+For media adapter packages:
+
+```bash
+npm install @tanilytics/adapter-youtube
 ```
 
 For local repository development:
@@ -36,7 +32,42 @@ For local repository development:
 bun install
 ```
 
-## Quick Start
+## 🚀 Why use Tanilytics?
+
+Tanilytics helps developers build privacy-respecting analytics into web applications through a focused, lightweight SDK.
+
+Use Tanilytics for:
+
+- **Automatic event tracking**. Capture page views, clicks, form submissions, scroll depth, and time on page without manual instrumentation.
+- **Media analytics**. Track video and audio playback through adapters for YouTube, Video.js, and hls.js — all piped through the same event queue and privacy controls.
+- **Privacy by default**. Built-in opt-out, consent management, and Do Not Track support keep you aligned with privacy expectations.
+- **Reliable delivery**. Events are batched, queued, and retried with `sendBeacon` fallback on page unload — so you don't lose data.
+- **Session management**. Sessions are persisted in browser storage with configurable timeouts.
+- **Strict TypeScript API**. Full type safety for configuration, events, and public methods with no implicit `any`.
+- **Small footprint**. Designed to stay lightweight and easy to integrate without bloating your bundle.
+
+## 📦 Packages
+
+This is a TypeScript monorepo with the following packages:
+
+| Package                       | Path                              | Description                       |
+| ----------------------------- | --------------------------------- | --------------------------------- |
+| `tanilytics`                  | `packages/core`                   | Main browser analytics SDK        |
+| `@tanilytics/adapter-youtube` | `packages/media-adapters/youtube` | YouTube iframe media adapter      |
+| `@tanilytics/adapter-videojs` | `packages/media-adapters/videojs` | Video.js adapter package scaffold |
+| `@tanilytics/adapter-hlsjs`   | `packages/media-adapters/hlsjs`   | hls.js adapter package scaffold   |
+
+Today, the core package contains the main SDK implementation. The YouTube adapter is usable as a core extension, while the other media adapter packages are still minimal scaffolds.
+
+## 🌐 Supported Environments
+
+Tanilytics is written in TypeScript and can be used in:
+
+- Node.js (for build/tooling)
+- Browser (ESM and UMD bundles)
+- Bundlers (Vite, Webpack, Rollup, etc.)
+
+## 🚀 Quick Start
 
 ```ts
 import tanilytics from 'tanilytics';
@@ -59,170 +90,14 @@ tanilytics.track('signup_clicked', {
 
 You can also provide the ingestion endpoint through the `INGESTION_URL` environment variable instead of passing `endpoint` to `tanilytics.init()`.
 
-## Public API
+## 📖 Additional Resources
 
-The current public API for `tanilytics` is a default export object with:
+- **Public API**: `tanilytics.init(config)`, `tanilytics.track(eventName, properties?)`, `tanilytics.flush()`, `tanilytics.destroy()`, `tanilytics.optOut()`, `tanilytics.optIn()`, `tanilytics.isOptedOut()`, `tanilytics.giveConsent()`, `tanilytics.withdrawConsent()`, `tanilytics.EventTypes`, `tanilytics.VERSION`
+- **Media Adapters**: Register adapters through `tanilytics.init({ adapters: [youtubeAdapter()] })` to track media events through the same privacy, session, and queue pipeline.
+- **Configuration**: Supports `siteToken`, `endpoint`, `flushInterval`, `maxBatchSize`, `maxQueueSize`, `compress`, `debug`, `requireConsent`, `respectDoNotTrack`, `autocapture`, and `adapters`.
+- **Event Model**: Manual tracking accepts any custom event name. Internal event types include `PAGE_VIEW`, `PAGE_LEAVE`, `CLICK`, `FORM_SUBMIT`, `SCROLL`, `MEDIA_PLAY`, `MEDIA_PAUSE`, `MEDIA_SEEK`, `MEDIA_PROGRESS`, `MEDIA_BUFFER`, `MEDIA_COMPLETE`, and `CUSTOM`.
 
-- `tanilytics.init(config)`
-- `tanilytics.track(eventName, properties?)`
-- `tanilytics.flush()`
-- `tanilytics.destroy()`
-- `tanilytics.optOut()`
-- `tanilytics.optIn()`
-- `tanilytics.isOptedOut()`
-- `tanilytics.giveConsent()`
-- `tanilytics.withdrawConsent()`
-- `tanilytics.EventTypes`
-- `tanilytics.VERSION`
-
-The package also exports types including `TanilyticsConfig`, `EventType`, `EventProperties`, and `IngestionEvent`.
-
-`TanilyticsConfig` also supports `adapters?: readonly MediaAdapterInterface[]` for media extensions.
-
-## Media Adapters
-
-Adapters are registered through `tanilytics.init()` and emit the core media event types through the same privacy, session, and queue pipeline.
-
-```ts
-import tanilytics from 'tanilytics';
-import { youtubeAdapter } from '@tanilytics/adapter-youtube';
-
-tanilytics.init({
-  siteToken: 'sk_live_abc12345',
-  endpoint: 'https://ingest.example.com/api/v1/events',
-  adapters: [youtubeAdapter()],
-});
-```
-
-`youtubeAdapter()` auto-detects supported YouTube embed iframes already on the page. Pass `youtubeAdapter({ iframe })` to scope tracking to one embed.
-
-## Event Model
-
-Manual tracking accepts any custom event name:
-
-```ts
-tanilytics.track('audio_downloaded', {
-  audioId: 'aud_123',
-  format: 'mp3',
-});
-```
-
-These events are sent with `event_type: 'custom'` and a separate `event_name` field.
-
-The SDK also emits fixed internal event types for autocapture and media adapters:
-
-- `PAGE_VIEW`
-- `PAGE_LEAVE`
-- `CLICK`
-- `FORM_SUBMIT`
-- `SCROLL`
-- `MEDIA_PLAY`
-- `MEDIA_PAUSE`
-- `MEDIA_SEEK`
-- `MEDIA_PROGRESS`
-- `MEDIA_BUFFER`
-- `MEDIA_COMPLETE`
-- `CUSTOM`
-
-## Configuration
-
-`tanilytics.init()` accepts this shape:
-
-```ts
-interface TanilyticsConfig {
-  siteToken: string;
-  endpoint?: string;
-  flushInterval?: number;
-  maxBatchSize?: number;
-  maxQueueSize?: number;
-  compress?: boolean;
-  debug?: boolean;
-  requireConsent?: boolean;
-  respectDoNotTrack?: boolean;
-  autocapture?:
-    | boolean
-    | {
-        pageViews?: boolean;
-        scrollDepth?: boolean;
-        timeOnPage?: boolean;
-        clicks?: boolean;
-        formSubmissions?: boolean;
-      };
-  adapters?: readonly MediaAdapterInterface[];
-}
-```
-
-Current defaults:
-
-- `flushInterval: 10000`
-- `maxBatchSize: 100`
-- `maxQueueSize: 1000`
-- `compress: true`
-- `debug: false`
-- `requireConsent: false`
-- `respectDoNotTrack: true`
-- `autocapture: true`
-
-Autocapture can be configured in two ways:
-
-```ts
-tanilytics.init({
-  siteToken: 'sk_live_abc12345',
-  endpoint: 'https://ingest.example.com/api/v1/events',
-  autocapture: true,
-});
-
-tanilytics.init({
-  siteToken: 'sk_live_abc12345',
-  endpoint: 'https://ingest.example.com/api/v1/events',
-  autocapture: {
-    pageViews: true,
-    clicks: true,
-    formSubmissions: true,
-    scrollDepth: true,
-    timeOnPage: false,
-  },
-});
-```
-
-- `autocapture: true` enables all built-in autocapture features
-- `autocapture: false` disables all built-in autocapture features
-- `autocapture: { ... }` overrides individual features
-
-Validation rules currently enforced by the SDK include:
-
-- `siteToken` is required and must be between 8 and 64 characters after trimming
-- `endpoint` must be a valid URL
-- non-HTTPS endpoints are only allowed for localhost-style development hosts
-- `flushInterval` must be an integer `>= 500`
-- `maxBatchSize` must be an integer between `1` and `200`
-- `maxQueueSize` must be an integer between `1` and `10000`
-- `compress` must be a boolean
-- `adapters` must be an array of objects with `name`, `attach(api)`, and `detach()`
-
-## Privacy Controls
-
-The SDK exposes helpers for common privacy flows:
-
-```ts
-import tanilytics from 'tanilytics';
-
-tanilytics.optOut();
-tanilytics.optIn();
-tanilytics.giveConsent();
-tanilytics.withdrawConsent();
-
-console.log(tanilytics.isOptedOut());
-```
-
-Current privacy behavior:
-
-- opt-out blocks all tracking
-- Do Not Track is respected by default
-- consent is optional by default
-- if `requireConsent` is enabled, events are blocked until consent is granted
-
-## Development
+## 🛠️ Development
 
 Run commands from the repository root.
 
@@ -266,7 +141,7 @@ bunx nx test tanilytics -- --run src/config/validator.test.ts -t "throws when si
 bunx nx test @tanilytics/adapter-videojs -- --run src/lib/videojs.spec.ts
 ```
 
-## Repository Structure
+## 📁 Repository Structure
 
 ```text
 packages/
@@ -281,3 +156,22 @@ tsconfig.base.json
 eslint.config.mjs
 vitest.workspace.ts
 ```
+
+## 💁 Contributing
+
+As an open-source project, we are open to contributions — whether in the form of bug fixes, new features, improved documentation, or feedback.
+
+When submitting a pull request:
+
+1. **Fill out the PR template** - Describe what your PR does, why it's needed, and any relevant context
+2. **Link related issues** - Use closing keywords like `Fixes #123` to automatically close issues when your PR is merged
+3. **Keep PRs focused** - One feature or fix per PR makes review easier and faster
+4. **Add tests** - Include tests for new functionality close to the changed implementation
+5. **Update documentation** - If your change affects public APIs, update the relevant docs
+6. **Run checks locally** - Make sure `bunx nx run-many -t lint`, `bun run format:check`, and `bunx nx run-many -t test` pass before pushing
+
+### Review Process
+
+- A maintainer will review your PR and may request changes
+- Please respond to feedback in a timely manner
+- Once approved, a maintainer will merge your PR

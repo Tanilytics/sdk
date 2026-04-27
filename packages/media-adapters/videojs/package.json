@@ -20,7 +20,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Tanilytics/analytics-sdk.git",
+    "url": "git+https://github.com/Tanilytics/sdk.git",
     "directory": "packages/media-adapters/videojs"
   },
   "nx": {
