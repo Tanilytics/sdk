@@ -1,6 +1,6 @@
 {
   "name": "@tanilytics/adapter-youtube",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "type": "module",
   "main": "./dist/index.esm.js",
   "module": "./dist/index.esm.js",
@@ -42,10 +42,10 @@
     ]
   },
   "peerDependencies": {
-    "tanilytics": "^0.4.0"
+    "tanilytics": "^0.4.1"
   },
   "devDependencies": {
-    "tanilytics": "^0.4.0",
+    "tanilytics": "^0.4.1",
     "vitest": "^4.0.9"
   }
 }
