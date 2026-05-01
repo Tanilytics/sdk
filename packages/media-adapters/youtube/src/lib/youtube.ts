@@ -33,7 +33,10 @@ export function youtubeAdapter(
 
       const targetIframes = resolveTargetIframes(config.iframe);
 
+      console.log(targetIframes);
+
       if (targetIframes.length === 0) {
+        console.log('No yt iframe detected');
         return;
       }
 
