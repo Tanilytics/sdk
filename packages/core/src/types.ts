@@ -98,7 +98,10 @@ export interface MediaEventProperties extends EventProperties {
  * Adapter events flow through the normal privacy, session, and queue pipeline.
  */
 export interface MediaAdapterApi {
-  trackMedia(eventType: MediaEventType, properties?: MediaEventProperties): void;
+  trackMedia(
+    eventType: MediaEventType,
+    properties?: MediaEventProperties,
+  ): void;
 }
 
 /**
