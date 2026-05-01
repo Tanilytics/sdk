@@ -1,4 +1,4 @@
-import type { EventProperties } from 'tanilytics';
+import type { MediaEventProperties } from 'tanilytics';
 
 export type YouTubeMediaEventType =
   | 'media_play'
@@ -82,7 +82,7 @@ export interface PlaybackContext {
 export interface YouTubeMediaAdapterApi {
   trackMedia(
     eventType: YouTubeMediaEventType,
-    properties?: EventProperties,
+    properties?: MediaEventProperties,
   ): void;
 }
 

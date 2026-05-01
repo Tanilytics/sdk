@@ -75,11 +75,33 @@ export interface IngestionPayload {
 export type TrackingEvent = IngestionEvent;
 
 /**
+ * Standard media event properties emitted by media adapters.
+ * These fields are extracted server-side for media engagement rollups.
+ */
+export interface MediaEventProperties extends EventProperties {
+  provider?: string;
+  video_id?: string;
+  video_url?: string;
+  title?: string;
+  current_time?: number;
+  duration?: number;
+  percent?: number;
+  buffered_fraction?: number;
+  delta_seconds?: number;
+  from_time?: number;
+  to_time?: number;
+  progress_percent?: number;
+}
+
+/**
  * Minimal API surface the core tracker exposes to media adapters.
  * Adapter events flow through the normal privacy, session, and queue pipeline.
  */
 export interface MediaAdapterApi {
-  trackMedia(eventType: MediaEventType, properties?: EventProperties): void;
+  trackMedia(
+    eventType: MediaEventType,
+    properties?: MediaEventProperties,
+  ): void;
 }
 
 /**

@@ -42,6 +42,7 @@ export type {
   SessionContext,
   MediaAdapterApi,
   MediaAdapterInterface,
+  MediaEventProperties,
   MediaEventType,
 } from './types';
 export type { TanilyticsConfig } from './config/types';

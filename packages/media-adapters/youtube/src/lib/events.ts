@@ -14,7 +14,7 @@ import type {
   YouTubePlayerEvent,
   VideoSnapshot,
 } from './types';
-import type { EventProperties } from 'tanilytics';
+import type { MediaEventProperties } from 'tanilytics';
 
 interface CreatePlayerEventHandlersOptions {
   adapterApi: YouTubeMediaAdapterApi;
@@ -620,14 +620,14 @@ function emit(
   adapterApi: YouTubeMediaAdapterApi,
   context: PlaybackContext,
   eventType: YouTubeMediaEventType,
-  extraProperties?: EventProperties,
+  extraProperties?: MediaEventProperties,
 ): void {
   if (context.player === null) {
     return;
   }
 
   const snapshot = readSnapshot(context.player);
-  const properties: EventProperties = { provider: 'youtube' };
+  const properties: MediaEventProperties = { provider: 'youtube' };
 
   if (snapshot.videoId !== undefined) {
     properties.video_id = snapshot.videoId;
