@@ -10,4 +10,5 @@ export {
   attachTimeOnPageTracker,
   detachTimeOnPageTracker,
   resetTimeOnPage,
+  flushTimeOnPage,
 } from './time-on-page';

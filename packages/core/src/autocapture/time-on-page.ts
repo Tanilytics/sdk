@@ -55,14 +55,30 @@ export function detachTimeOnPageTracker(): void {
 }
 
 /**
+ * Accumulates active time and returns the duration spent on the current page.
+ * Called by the tracker on SPA navigation to enrich the PAGE_LEAVE event
+ * with duration data. Does NOT fire a PAGE_LEAVE event — the caller is
+ * responsible for that.
+ *
+ * Returns null when the accumulated time is below the 1-second minimum
+ * threshold, indicating the visit was too short to be meaningful.
+ */
+export function flushTimeOnPage(): number | null {
+  accumulateActiveTime();
+
+  const duration = _activeTime;
+  _activeTime = 0;
+
+  return duration >= 1000 ? duration : null;
+}
+
+/**
  * Called by the page view tracker when a new SPA navigation occurs.
- * Fires the accumulated time for the previous page and resets for the new one.
+ * Resets the timer for the new page without firing a PAGE_LEAVE event.
+ * (PAGE_LEAVE is now fired by the page-view tracker; time-on-page only
+ * contributes duration data via flushTimeOnPage.)
  */
 export function resetTimeOnPage(): void {
-  // Fire accumulated time for the page we are leaving
-  flushActiveTime();
-
-  // Reset for the new page
   _activeTime = 0;
   _visibleSince = document.visibilityState === 'visible' ? Date.now() : null;
 }

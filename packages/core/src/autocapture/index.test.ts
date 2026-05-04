@@ -16,5 +16,6 @@ describe('autocapture/index exports', () => {
     expect(typeof autocapture.attachTimeOnPageTracker).toBe('function');
     expect(typeof autocapture.detachTimeOnPageTracker).toBe('function');
     expect(typeof autocapture.resetTimeOnPage).toBe('function');
+    expect(typeof autocapture.flushTimeOnPage).toBe('function');
   });
 });
