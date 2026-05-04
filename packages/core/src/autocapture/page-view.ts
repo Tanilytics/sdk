@@ -21,9 +21,11 @@ let _debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let _onPopState: (() => void) | null = null;
 
 let _track: TrackFn | null = null;
+let _timeOnPage = false;
 
 export function attachPageViewTracker(opts: PageViewTrackerOptions): void {
   _track = opts.track;
+  _timeOnPage = opts.config.autocapture.timeOnPage;
   _lastUrl = globalThis.location.href;
 
   patchHistory();
@@ -36,6 +38,7 @@ export function detachPageViewTracker(): void {
   clearDebounce();
 
   _track = null;
+  _timeOnPage = false;
   _lastUrl = '';
 }
 
@@ -112,6 +115,12 @@ function fireIfUrlChanged(type: NavigationType): void {
   if (type === 'replace' && currentPathname === lastPathname) return;
 
   _lastUrl = currentUrl;
+
+  if (_track !== null && _timeOnPage) {
+    _track(EventTypes.PAGE_LEAVE, {
+      navigationType: type,
+    });
+  }
 
   setTimeout(() => {
     if (_track === null) return;

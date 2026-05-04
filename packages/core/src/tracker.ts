@@ -30,6 +30,7 @@ import {
   detachTimeOnPageTracker,
   resetScrollDepth,
   resetTimeOnPage,
+  flushTimeOnPage,
 } from './autocapture';
 import { EventTypes } from './events/event-types';
 import { VERSION } from './version';
@@ -198,7 +199,19 @@ export class TanilyticsTracker {
       if (pageViews) {
         attachPageViewTracker({
           track: (eventType, properties) => {
-            this.trackInternal(eventType as InternalEventType, properties);
+            let enrichedProperties = properties;
+
+            if (eventType === EventTypes.PAGE_LEAVE && timeOnPage) {
+              const duration = flushTimeOnPage();
+              if (duration !== null) {
+                enrichedProperties = { ...properties, duration };
+              }
+            }
+
+            this.trackInternal(
+              eventType as InternalEventType,
+              enrichedProperties,
+            );
 
             // Reset per-page autocapture state after SPA page view events.
             if (eventType === EventTypes.PAGE_VIEW) {

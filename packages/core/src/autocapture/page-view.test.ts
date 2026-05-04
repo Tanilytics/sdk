@@ -1,7 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { ResolvedConfig } from '../config/types';
 import { EventTypes } from '../events/event-types';
 import { attachPageViewTracker, detachPageViewTracker } from './page-view';
+
+const configWithTimeOnPage = {
+  autocapture: { timeOnPage: true },
+} as ResolvedConfig;
+
+const configWithoutTimeOnPage = {
+  autocapture: { timeOnPage: false },
+} as ResolvedConfig;
 
 function createBrowserHarness(initialHref = 'https://example.com/start') {
   const listeners = new Map<string, Set<() => void>>();
@@ -67,6 +76,42 @@ function createBrowserHarness(initialHref = 'https://example.com/start') {
   };
 }
 
+function setupTracker(
+  config: ResolvedConfig,
+  initialHref = 'https://example.com/start',
+) {
+  const harness = createBrowserHarness(initialHref);
+  const track = vi.fn();
+  attachPageViewTracker({ track, config });
+  return { ...harness, track };
+}
+
+async function flushTimers(): Promise<void> {
+  await vi.runAllTimersAsync();
+}
+
+function expectPageLeave(
+  track: ReturnType<typeof vi.fn>,
+  nth: number,
+  navigationType: string,
+): void {
+  expect(track).toHaveBeenNthCalledWith(nth, EventTypes.PAGE_LEAVE, {
+    navigationType,
+  });
+}
+
+function expectPageView(
+  track: ReturnType<typeof vi.fn>,
+  nth: number,
+  navigationType: string,
+  title = 'Initial title',
+): void {
+  expect(track).toHaveBeenNthCalledWith(nth, EventTypes.PAGE_VIEW, {
+    navigationType,
+    title,
+  });
+}
+
 describe('autocapture/page-view', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -86,7 +131,7 @@ describe('autocapture/page-view', () => {
     const originalPush = historyObj.pushState;
     const originalReplace = historyObj.replaceState;
 
-    attachPageViewTracker({ track, config: {} as never });
+    attachPageViewTracker({ track, config: configWithoutTimeOnPage });
 
     expect(historyObj.pushState).not.toBe(originalPush);
     expect(historyObj.replaceState).not.toBe(originalReplace);
@@ -112,14 +157,28 @@ describe('autocapture/page-view', () => {
     expect(track).not.toHaveBeenCalled();
   });
 
-  it('fires page_view on pushState URL changes', async () => {
-    const { historyObj } = createBrowserHarness('https://example.com/start');
-    const track = vi.fn();
-
-    attachPageViewTracker({ track, config: {} as never });
+  it('fires page_leave and page_view on pushState URL changes when timeOnPage is enabled', async () => {
+    const { historyObj, track } = setupTracker(
+      configWithTimeOnPage,
+      'https://example.com/start',
+    );
 
     historyObj.pushState({}, '', '/next');
-    await vi.runAllTimersAsync();
+    await flushTimers();
+
+    expect(track).toHaveBeenCalledTimes(2);
+    expectPageLeave(track, 1, 'push');
+    expectPageView(track, 2, 'push');
+  });
+
+  it('fires only page_view on pushState when timeOnPage is disabled', async () => {
+    const { historyObj, track } = setupTracker(
+      configWithoutTimeOnPage,
+      'https://example.com/start',
+    );
+
+    historyObj.pushState({}, '', '/next');
+    await flushTimers();
 
     expect(track).toHaveBeenCalledTimes(1);
     expect(track).toHaveBeenCalledWith(EventTypes.PAGE_VIEW, {
@@ -129,100 +188,93 @@ describe('autocapture/page-view', () => {
   });
 
   it('does not fire when URL does not change', async () => {
-    const { historyObj } = createBrowserHarness('https://example.com/same');
-    const track = vi.fn();
-
-    attachPageViewTracker({ track, config: {} as never });
+    const { historyObj, track } = setupTracker(
+      configWithoutTimeOnPage,
+      'https://example.com/same',
+    );
 
     historyObj.pushState({}, '', 'https://example.com/same');
-    await vi.runAllTimersAsync();
+    await flushTimers();
 
     expect(track).not.toHaveBeenCalled();
   });
 
   it('does not fire on hash-only URL changes', async () => {
-    const { historyObj } = createBrowserHarness(
+    const { historyObj, track } = setupTracker(
+      configWithoutTimeOnPage,
       'https://example.com/page?a=1#old',
     );
-    const track = vi.fn();
-
-    attachPageViewTracker({ track, config: {} as never });
 
     historyObj.pushState({}, '', 'https://example.com/page?a=1#new');
-    await vi.runAllTimersAsync();
+    await flushTimers();
 
     expect(track).not.toHaveBeenCalled();
   });
 
   it('suppresses replaceState when pathname does not change', async () => {
-    const { historyObj } = createBrowserHarness('https://example.com/page?a=1');
-    const track = vi.fn();
-
-    attachPageViewTracker({ track, config: {} as never });
+    const { historyObj, track } = setupTracker(
+      configWithTimeOnPage,
+      'https://example.com/page?a=1',
+    );
 
     historyObj.replaceState({}, '', 'https://example.com/page?a=2');
-    await vi.runAllTimersAsync();
+    await flushTimers();
 
     expect(track).not.toHaveBeenCalled();
 
     historyObj.replaceState({}, '', 'https://example.com/other?a=2');
-    await vi.runAllTimersAsync();
+    await flushTimers();
 
-    expect(track).toHaveBeenCalledTimes(1);
-    expect(track).toHaveBeenLastCalledWith(EventTypes.PAGE_VIEW, {
-      navigationType: 'replace',
-      title: 'Initial title',
-    });
+    expect(track).toHaveBeenCalledTimes(2);
+    expectPageLeave(track, 1, 'replace');
+    expectPageView(track, 2, 'replace');
   });
 
   it('fires on popstate after URL changes', async () => {
-    const { dispatchPopState, setHref } = createBrowserHarness(
+    const { dispatchPopState, setHref, track } = setupTracker(
+      configWithTimeOnPage,
       'https://example.com/a',
     );
-    const track = vi.fn();
-
-    attachPageViewTracker({ track, config: {} as never });
 
     setHref('https://example.com/b');
     dispatchPopState();
-    await vi.runAllTimersAsync();
+    await flushTimers();
 
-    expect(track).toHaveBeenCalledTimes(1);
-    expect(track).toHaveBeenCalledWith(EventTypes.PAGE_VIEW, {
-      navigationType: 'pop',
-      title: 'Initial title',
-    });
+    expect(track).toHaveBeenCalledTimes(2);
+    expectPageLeave(track, 1, 'pop');
+    expectPageView(track, 2, 'pop');
   });
 
   it('clears pending debounce and prevents calls after detach', async () => {
-    const { historyObj } = createBrowserHarness('https://example.com/start');
-    const track = vi.fn();
-
-    attachPageViewTracker({ track, config: {} as never });
+    const { historyObj, track } = setupTracker(
+      configWithoutTimeOnPage,
+      'https://example.com/start',
+    );
 
     historyObj.pushState({}, '', '/queued');
     detachPageViewTracker();
 
-    await vi.runAllTimersAsync();
+    await flushTimers();
     expect(track).not.toHaveBeenCalled();
   });
 
   it('is safe to attach and detach multiple times', async () => {
-    const { historyObj } = createBrowserHarness('https://example.com/one');
-    const track = vi.fn();
+    const { historyObj, track } = setupTracker(
+      configWithTimeOnPage,
+      'https://example.com/one',
+    );
 
-    attachPageViewTracker({ track, config: {} as never });
-    attachPageViewTracker({ track, config: {} as never });
+    attachPageViewTracker({ track, config: configWithTimeOnPage });
 
     historyObj.pushState({}, '', '/two');
-    await vi.runAllTimersAsync();
-    expect(track).toHaveBeenCalledTimes(1);
+    await flushTimers();
+    expect(track).toHaveBeenCalledTimes(2);
 
     detachPageViewTracker();
     detachPageViewTracker();
 
     historyObj.pushState({}, '', '/three');
-    await vi.runAllTimersAsync();
-    expect(track).toHaveBeenCalledTimes(1);
+    await flushTimers();
+    expect(track).toHaveBeenCalledTimes(2);
   });
 });
