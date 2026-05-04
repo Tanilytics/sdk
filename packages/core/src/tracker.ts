@@ -208,7 +208,10 @@ export class TanilyticsTracker {
               }
             }
 
-            this.trackInternal(eventType as InternalEventType, enrichedProperties);
+            this.trackInternal(
+              eventType as InternalEventType,
+              enrichedProperties,
+            );
 
             // Reset per-page autocapture state after SPA page view events.
             if (eventType === EventTypes.PAGE_VIEW) {
